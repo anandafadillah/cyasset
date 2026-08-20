@@ -3,17 +3,28 @@ import bcrypt from "bcryptjs";
 import { db } from "../src/db";
 import { staff } from "../src/db/schema";
 
+// Nilai default cocok untuk dev lokal. Untuk produksi, override lewat env var
+// (ADMIN_USERNAME/ADMIN_EMAIL/ADMIN_NAME/ADMIN_PASSWORD) supaya password
+// asli tidak pernah masuk ke source code/git — lihat DEPLOYMENT.md.
+const name = process.env.ADMIN_NAME || "Rian Nugraha";
+const username = process.env.ADMIN_USERNAME || "rian.sarpras";
+const email = process.env.ADMIN_EMAIL || "rian@smkcybermedia.sch.id";
+const password = process.env.ADMIN_PASSWORD || "sarpras123";
+
 async function main() {
-  const username = "rian.sarpras";
-  const email = "rian@smkcybermedia.sch.id";
-  const password = "sarpras123";
+  if (!process.env.ADMIN_PASSWORD) {
+    console.warn(
+      "Peringatan: ADMIN_PASSWORD tidak di-set, memakai password contoh (hanya untuk dev lokal). " +
+        "Untuk produksi, jalankan ulang dengan ADMIN_USERNAME/ADMIN_EMAIL/ADMIN_PASSWORD ter-set.",
+    );
+  }
 
   const passwordHash = await bcrypt.hash(password, 10);
 
   const inserted = await db
     .insert(staff)
     .values({
-      name: "Rian Nugraha",
+      name,
       username,
       email,
       passwordHash,
@@ -27,7 +38,9 @@ async function main() {
     console.log("Akun Admin Sarpras awal berhasil dibuat:");
     console.log(`  Username : ${username}`);
     console.log(`  Email    : ${email}`);
-    console.log(`  Password : ${password} (ganti setelah login pertama)`);
+    if (!process.env.ADMIN_PASSWORD) {
+      console.log(`  Password : ${password} (ganti setelah login pertama — belum ada fitur ubah password di UI)`);
+    }
   }
 
   process.exit(0);

@@ -1,0 +1,59 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cyasset
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: cyasset
+    volumes:
+      - cyasset_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cyasset"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # Sengaja TIDAK ada `ports:` — Postgres cuma perlu diakses dari container
+    # `app` lewat jaringan Docker internal (host `db`), tidak perlu ke-expose
+    # ke VM sama sekali.
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      # Override DATABASE_URL supaya selalu nunjuk ke service `db` di jaringan
+      # Docker (host "db"), terlepas dari apa yang tertulis di .env.
+      DATABASE_URL: postgresql://cyasset:${POSTGRES_PASSWORD}@db:5432/cyasset
+    ports:
+      # Bind ke 127.0.0.1 saja — tidak ke-expose ke LAN/internet. cloudflared
+      # (jalan native di VM, lihat DEPLOYMENT.md) menghubungi lewat localhost.
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - ./uploads:/app/public/uploads
+
+  # Dipakai SEKALI-SEKALI lewat `docker compose run --rm tools <perintah>`
+  # (migrasi, seed) — bukan service yang otomatis ikut naik saat `up`.
+  # Image `builder` (beda dari image `app`/runner) masih punya devDependencies
+  # penuh (drizzle-kit, tsx) yang sengaja tidak dibawa ke image runtime
+  # standalone yang lebih ramping.
+  tools:
+    build:
+      context: .
+      target: builder
+    profiles: ["tools"]
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://cyasset:${POSTGRES_PASSWORD}@db:5432/cyasset
+    entrypoint: ["npm", "run"]
+
+volumes:
+  cyasset_pgdata:

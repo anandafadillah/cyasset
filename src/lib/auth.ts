@@ -6,6 +6,11 @@ import { db } from "@/db";
 import { staff } from "@/db/schema";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  // Wajib di production (lihat https://errors.authjs.dev#untrustedhost) —
+  // di dev mode Auth.js otomatis percaya localhost, tapi di balik reverse
+  // proxy (Cloudflare Tunnel) perlu di-set eksplisit. Aman karena satu-
+  // satunya jalur masuk trafik ke app adalah lewat tunnel yang kita kontrol.
+  trustHost: true,
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
   providers: [
