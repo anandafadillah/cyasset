@@ -24,6 +24,6 @@ export const config = {
   // ikut publik supaya bisa dimuat dari halaman itu — foto peminjaman &
   // laporan kerusakan TIDAK dikecualikan, tetap wajib login.
   matcher: [
-    "/((?!api/auth|_next/static|_next/image|favicon.ico|s/|uploads/barang/|uploads/prasarana/).*)",
+    "/((?!api/auth|_next/static|_next/image|favicon.ico|s/|uploads/barang/|uploads/prasarana/|.*\\.(?:png|jpg|jpeg|svg|gif|webp|ico)$).*)",
   ],
 };
