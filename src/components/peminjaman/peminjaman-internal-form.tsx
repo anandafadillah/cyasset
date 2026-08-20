@@ -56,7 +56,7 @@ export function PeminjamanInternalForm({ barangOptions }: { barangOptions: Baran
         <PhotoUploadField />
       </Panel>
 
-      <div className="flex items-center gap-3 xl:col-span-2">
+      <div className="sticky bottom-0 -mx-6 -mb-6 flex items-center gap-3 border-t border-border bg-surface px-6 py-4 xl:col-span-2">
         <div aria-live="polite" className="text-sm text-danger">
           {error}
         </div>

@@ -132,7 +132,7 @@ export function LaporanForm({ barangOptions }: { barangOptions: BarangPickerOpti
         <PhotoUploadField />
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="sticky bottom-0 -mb-6 flex items-center gap-3 border-t border-border bg-surface px-1 py-4">
         <div aria-live="polite" className="text-sm text-danger">
           {error}
         </div>

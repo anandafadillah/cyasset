@@ -8,7 +8,7 @@ export default async function PeminjamanEksternalBaruPage() {
 
   return (
     <>
-      <div className="flex h-[66px] flex-none items-center gap-3 border-b border-border px-6">
+      <div className="sticky top-0 z-10 flex h-[66px] flex-none items-center gap-3 border-b border-border bg-surface px-6">
         <Link href="/peminjaman" className="grid size-8 place-items-center rounded-lg text-muted hover:text-text">
           <ArrowLeft size={18} />
         </Link>
