@@ -1,0 +1,83 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1786755501120,
+      "tag": "0000_loose_squadron_supreme",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1786953372109,
+      "tag": "0001_akun_staf_audit_trail",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786953953474,
+      "tag": "0002_lokasi_hierarki",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1786954251602,
+      "tag": "0003_barang_inventaris",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1786955069663,
+      "tag": "0004_peminjaman",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1786955440177,
+      "tag": "0005_surat_counter",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1786955880911,
+      "tag": "0006_laporan_kerusakan",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1787102296834,
+      "tag": "0007_sparkling_mongu",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1787198501223,
+      "tag": "0008_flippant_the_enforcers",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1787202469717,
+      "tag": "0009_curly_tony_stark",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1787204575223,
+      "tag": "0010_romantic_klaw",
+      "breakpoints": true
+    }
+  ]
+}
