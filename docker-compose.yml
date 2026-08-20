@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cyasset
+      POSTGRES_PASSWORD: cyasset
+      POSTGRES_DB: cyasset
+    ports:
+      - "5434:5432"
+    volumes:
+      - cyasset_pgdata:/var/lib/postgresql/data
+
+volumes:
+  cyasset_pgdata:
