@@ -64,7 +64,8 @@ export function PrasaranaForm({ initialData }: { initialData?: PrasaranaFormInit
   }
 
   return (
-    <form action={handleSubmit} className="grid grid-cols-1 items-start gap-5.5 xl:grid-cols-[1fr_340px]">
+    <form action={handleSubmit} className="flex flex-1 flex-col">
+      <div className="grid flex-1 grid-cols-1 items-start gap-5.5 xl:grid-cols-[1fr_340px]">
       {isEdit && <input type="hidden" name="id" value={initialData.id} />}
       <div className="flex flex-col gap-4.5">
         <Panel title="Identitas Pekerjaan">
@@ -178,8 +179,9 @@ export function PrasaranaForm({ initialData }: { initialData?: PrasaranaFormInit
         <PhotoUploadField />
         {isEdit && <p className="mt-2 text-[11px] text-dim">Foto baru akan ditambahkan, foto lama tetap tersimpan.</p>}
       </Panel>
+      </div>
 
-      <div className="sticky bottom-0 -mx-6 -mb-6 flex items-center gap-3 border-t border-border bg-surface px-6 py-4 xl:col-span-2">
+      <div className="sticky bottom-0 -mx-6 -mb-6 mt-5.5 flex items-center gap-3 border-t border-border bg-surface px-6 py-4">
         <div aria-live="polite" className="text-sm text-danger">
           {error}
         </div>

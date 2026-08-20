@@ -17,7 +17,7 @@ export default async function PeminjamanEksternalBaruPage() {
           <div className="mt-0.5 text-xs text-dim">Peminjaman / Baru</div>
         </div>
       </div>
-      <div className="flex-1 p-6">
+      <div className="flex flex-1 flex-col p-6">
         <PeminjamanEksternalForm barangOptions={barangOptions} />
       </div>
     </>

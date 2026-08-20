@@ -14,7 +14,7 @@ export default function PrasaranaBaruPage() {
           <div className="mt-0.5 text-xs text-dim">Prasarana / Baru</div>
         </div>
       </div>
-      <div className="flex-1 p-6">
+      <div className="flex flex-1 flex-col p-6">
         <PrasaranaForm />
       </div>
     </>

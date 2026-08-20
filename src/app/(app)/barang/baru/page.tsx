@@ -17,7 +17,7 @@ export default async function TambahBarangPage() {
           <div className="mt-0.5 text-xs text-dim">Barang / Baru</div>
         </div>
       </div>
-      <div className="flex-1 p-6">
+      <div className="flex flex-1 flex-col p-6">
         <BarangForm gedungList={gedungList} />
       </div>
     </>

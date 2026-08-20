@@ -33,7 +33,8 @@ export function LaporanForm({ barangOptions }: { barangOptions: BarangPickerOpti
   }
 
   return (
-    <form action={handleSubmit} className="mx-auto flex max-w-2xl flex-col gap-4.5">
+    <form action={handleSubmit} className="mx-auto flex w-full max-w-2xl flex-1 flex-col">
+      <div className="flex flex-1 flex-col gap-4.5">
       <div className="rounded-xl border border-border bg-surface p-5">
         <h3 className="mb-4 text-sm font-semibold text-text">Tiket Laporan Kerusakan</h3>
         <div className="flex flex-col gap-3.5">
@@ -131,8 +132,9 @@ export function LaporanForm({ barangOptions }: { barangOptions: BarangPickerOpti
         </h3>
         <PhotoUploadField />
       </div>
+      </div>
 
-      <div className="sticky bottom-0 -mb-6 flex items-center gap-3 border-t border-border bg-surface px-1 py-4">
+      <div className="sticky bottom-0 -mb-6 mt-4.5 flex items-center gap-3 border-t border-border bg-surface px-1 py-4">
         <div aria-live="polite" className="text-sm text-danger">
           {error}
         </div>

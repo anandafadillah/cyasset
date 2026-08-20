@@ -27,7 +27,8 @@ export function PeminjamanInternalForm({ barangOptions }: { barangOptions: Baran
   }
 
   return (
-    <form action={handleSubmit} className="grid grid-cols-1 items-start gap-5.5 xl:grid-cols-[1fr_320px]">
+    <form action={handleSubmit} className="flex flex-1 flex-col">
+      <div className="grid flex-1 grid-cols-1 items-start gap-5.5 xl:grid-cols-[1fr_320px]">
       <div className="flex flex-col gap-4.5">
         <Panel title="Peminjam">
           <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
@@ -55,8 +56,9 @@ export function PeminjamanInternalForm({ barangOptions }: { barangOptions: Baran
       <Panel title="Foto Kondisi Awal" subtitle="(opsional)">
         <PhotoUploadField />
       </Panel>
+      </div>
 
-      <div className="sticky bottom-0 -mx-6 -mb-6 flex items-center gap-3 border-t border-border bg-surface px-6 py-4 xl:col-span-2">
+      <div className="sticky bottom-0 -mx-6 -mb-6 mt-5.5 flex items-center gap-3 border-t border-border bg-surface px-6 py-4">
         <div aria-live="polite" className="text-sm text-danger">
           {error}
         </div>

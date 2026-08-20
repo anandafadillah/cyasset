@@ -47,7 +47,7 @@ export default async function LaporanKerusakanBaruPage() {
           <div className="mt-0.5 text-xs text-dim">Laporan Kerusakan / Baru</div>
         </div>
       </div>
-      <div className="flex-1 p-6">
+      <div className="flex flex-1 flex-col p-6">
         <LaporanForm barangOptions={barangOptions} />
       </div>
     </>

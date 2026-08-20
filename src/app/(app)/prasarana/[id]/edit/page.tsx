@@ -39,7 +39,7 @@ export default async function EditPrasaranaPage({ params }: { params: Promise<{ 
           <div className="mt-0.5 text-xs text-dim">Prasarana / {item.nama} / Ubah</div>
         </div>
       </div>
-      <div className="flex-1 p-6">
+      <div className="flex flex-1 flex-col p-6">
         <PrasaranaForm initialData={initialData} />
       </div>
     </>
