@@ -12,7 +12,7 @@ export function Topbar({
   actions?: ReactNode;
 }) {
   return (
-    <div className="flex h-[66px] flex-none items-center gap-4 border-b border-border px-6">
+    <div className="sticky top-0 z-10 flex h-[66px] flex-none items-center gap-4 border-b border-border bg-surface px-6">
       <div>
         <h2 className="text-xl font-semibold text-text">{title}</h2>
         {breadcrumb && <div className="mt-0.5 text-xs text-dim">{breadcrumb}</div>}

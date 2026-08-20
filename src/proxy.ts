@@ -22,8 +22,9 @@ export const config = {
   // "s/" = halaman card publik hasil scan QR (lihat src/app/s/), read-only
   // tanpa login. "uploads/barang/" & "uploads/prasarana/" = foto yang perlu
   // ikut publik supaya bisa dimuat dari halaman itu — foto peminjaman &
-  // laporan kerusakan TIDAK dikecualikan, tetap wajib login.
+  // laporan kerusakan TIDAK dikecualikan, tetap wajib login. "logo.png" &
+  // "logo.jpg" perlu publik supaya tampil di halaman /login (belum login).
   matcher: [
-    "/((?!api/auth|_next/static|_next/image|favicon.ico|s/|uploads/barang/|uploads/prasarana/).*)",
+    "/((?!api/auth|_next/static|_next/image|favicon.ico|logo\\.png|logo\\.jpg|s/|uploads/barang/|uploads/prasarana/).*)",
   ],
 };
