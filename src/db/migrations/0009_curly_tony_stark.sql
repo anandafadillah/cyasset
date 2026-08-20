@@ -1,0 +1,2 @@
+ALTER TABLE "peminjaman_item" ADD COLUMN "barang_unit_id" uuid;--> statement-breakpoint
+ALTER TABLE "peminjaman_item" ADD CONSTRAINT "peminjaman_item_barang_unit_id_barang_unit_id_fk" FOREIGN KEY ("barang_unit_id") REFERENCES "public"."barang_unit"("id") ON DELETE restrict ON UPDATE no action;
