@@ -20,9 +20,26 @@ export type BarangFormInitial = {
   jumlahBaik: number;
   jumlahRusakRingan: number;
   jumlahRusakBerat: number;
+  tanggalMasuk: string | null;
+  sumberDana: string | null;
+  sumberDanaLainnya: string | null;
+  periodeDana: string | null;
+  nominalDana: number | null;
   lokasi: LocationCascadeInitial;
   existingPhotos: { id: string; path: string }[];
 };
+
+const sumberDanaOptions = [
+  { value: "ssg", label: "SSG (Sekolah Swasta Gratis)" },
+  { value: "bos", label: "BOS" },
+  { value: "komite_sekolah", label: "Komite Sekolah" },
+  { value: "mandiri_yayasan", label: "Mandiri Yayasan" },
+  { value: "lainnya", label: "Lainnya" },
+];
+
+function todayIso() {
+  return new Date().toISOString().slice(0, 10);
+}
 
 export function BarangForm({
   gedungList,
@@ -46,6 +63,8 @@ export function BarangForm({
 
   const totalKondisi = jumlahBaik + jumlahRusakRingan + jumlahRusakBerat;
   const totalCocok = useMemo(() => jumlahUnit > 0 && totalKondisi === jumlahUnit, [jumlahUnit, totalKondisi]);
+
+  const [sumberDana, setSumberDana] = useState(initialData?.sumberDana ?? "ssg");
 
   const [existingPhotos, setExistingPhotos] = useState(initialData?.existingPhotos ?? []);
   const [deletingPhotoId, setDeletingPhotoId] = useState<string | null>(null);
@@ -113,6 +132,49 @@ export function BarangForm({
                 defaultValue={initialData?.spesifikasi ?? undefined}
               />
             </div>
+          </div>
+        </Panel>
+
+        <Panel title="Tanggal Masuk & Sumber Dana">
+          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+            <DateField
+              label="Tanggal Masuk"
+              name="tanggalMasuk"
+              required
+              defaultValue={initialData?.tanggalMasuk ?? (isEdit ? undefined : todayIso())}
+            />
+            <SelectField
+              label="Sumber Dana"
+              name="sumberDana"
+              required
+              options={sumberDanaOptions}
+              value={sumberDana}
+              onChange={setSumberDana}
+            />
+            {sumberDana === "lainnya" && (
+              <TextField
+                label="Keterangan Sumber Dana"
+                name="sumberDanaLainnya"
+                required
+                placeholder="mis. Donasi alumni"
+                defaultValue={initialData?.sumberDanaLainnya ?? undefined}
+              />
+            )}
+            <TextField
+              label="Periode"
+              name="periodeDana"
+              placeholder="mis. TW II 2026"
+              hint="(opsional)"
+              defaultValue={initialData?.periodeDana ?? undefined}
+            />
+            <TextField
+              label="Nominal Dana (Rp)"
+              name="nominalDana"
+              type="number"
+              placeholder="mis. 15000000"
+              hint="(opsional)"
+              defaultValue={initialData?.nominalDana != null ? String(initialData.nominalDana) : undefined}
+            />
           </div>
         </Panel>
 
@@ -327,6 +389,7 @@ function TextField({
   hint,
   className,
   defaultValue,
+  type = "text",
 }: {
   label: string;
   name: string;
@@ -335,6 +398,7 @@ function TextField({
   hint?: string;
   className?: string;
   defaultValue?: string;
+  type?: string;
 }) {
   return (
     <div className={`flex flex-col gap-1.5 ${className ?? ""}`}>
@@ -344,12 +408,81 @@ function TextField({
       <input
         id={name}
         name={name}
-        type="text"
+        type={type}
         required={required}
         placeholder={placeholder}
         defaultValue={defaultValue}
+        min={type === "number" ? 0 : undefined}
         className="rounded-lg border border-border bg-surface-2 px-3 py-2.5 text-sm text-text outline-none focus:border-accent"
       />
+    </div>
+  );
+}
+
+function DateField({
+  label,
+  name,
+  required,
+  hint,
+  defaultValue,
+}: {
+  label: string;
+  name: string;
+  required?: boolean;
+  hint?: string;
+  defaultValue?: string;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label htmlFor={name} className="text-xs font-medium text-muted">
+        {label} {hint && <span className="text-dim">{hint}</span>}
+      </label>
+      <input
+        id={name}
+        name={name}
+        type="date"
+        required={required}
+        defaultValue={defaultValue}
+        className="rounded-lg border border-border bg-surface-2 px-3 py-2.5 text-sm text-text outline-none focus:border-accent"
+      />
+    </div>
+  );
+}
+
+function SelectField({
+  label,
+  name,
+  required,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  name: string;
+  required?: boolean;
+  options: { value: string; label: string }[];
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label htmlFor={name} className="text-xs font-medium text-muted">
+        {label}
+      </label>
+      <select
+        id={name}
+        name={name}
+        required={required}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="rounded-lg border border-border bg-surface-2 px-3 py-2.5 text-sm text-text outline-none focus:border-accent"
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }

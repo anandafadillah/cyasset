@@ -29,6 +29,11 @@ export default async function EditBarangPage({ params }: { params: Promise<{ id:
     jumlahBaik: item.jumlahBaik,
     jumlahRusakRingan: item.jumlahRusakRingan,
     jumlahRusakBerat: item.jumlahRusakBerat,
+    tanggalMasuk: item.tanggalMasuk,
+    sumberDana: item.sumberDana,
+    sumberDanaLainnya: item.sumberDanaLainnya,
+    periodeDana: item.periodeDana,
+    nominalDana: item.nominalDana,
     lokasi: {
       ruangId: item.ruangId,
       subLokasiId: item.subLokasiId ?? "",

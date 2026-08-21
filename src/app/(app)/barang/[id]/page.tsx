@@ -7,6 +7,7 @@ import { BarangHistoryTabs } from "@/components/barang/barang-history-tabs";
 import { BarangUnitList, type BarangUnitRow } from "@/components/barang/barang-unit-list";
 import { PhotoGallery } from "@/components/barang/photo-gallery";
 import { getLocationTree } from "@/lib/locations";
+import { formatRupiah, formatTanggalPendek, sumberDanaLabel } from "@/lib/prasarana-format";
 import { getDipinjamUnitSet } from "@/lib/stok";
 import { db } from "@/db";
 import { barang, barangUnit, laporanKerusakan, peminjaman, peminjamanItem, staff } from "@/db/schema";
@@ -101,6 +102,11 @@ export default async function BarangDetailPage({ params }: { params: Promise<{ i
     month: "short",
     year: "numeric",
   });
+  const tanggalMasukLabel = item.tanggalMasuk ? formatTanggalPendek(item.tanggalMasuk) : "—";
+  const sumberDanaText = item.sumberDana
+    ? `${sumberDanaLabel[item.sumberDana]}${item.sumberDana === "lainnya" && item.sumberDanaLainnya ? ` (${item.sumberDanaLainnya})` : ""}${item.periodeDana ? ` · ${item.periodeDana}` : ""}`
+    : "—";
+  const nominalDanaLabel = item.nominalDana != null ? formatRupiah(item.nominalDana) : "—";
 
   return (
     <>
@@ -203,6 +209,9 @@ export default async function BarangDetailPage({ params }: { params: Promise<{ i
             <Field label="Kategori" value={item.kategori || "—"} />
             <Field label="Lokasi" value={lokasiLabel} className="sm:col-span-2" />
             <Field label="Ditambahkan" value={`${tanggalDitambahkan}${creator ? ` · ${creator.name}` : ""}`} />
+            <Field label="Tanggal Masuk" value={tanggalMasukLabel} />
+            <Field label="Sumber Dana" value={sumberDanaText} />
+            <Field label="Nominal Dana" value={nominalDanaLabel} />
             <Field label="Spesifikasi Teknis" value={item.spesifikasi || "—"} className="sm:col-span-3" />
           </div>
         </div>

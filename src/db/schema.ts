@@ -120,6 +120,13 @@ export const barangUnitKondisiEnum = pgEnum("barang_unit_kondisi", [
   "hilang",
   "diganti",
 ]);
+export const barangSumberDanaEnum = pgEnum("barang_sumber_dana", [
+  "ssg",
+  "bos",
+  "komite_sekolah",
+  "mandiri_yayasan",
+  "lainnya",
+]);
 
 export const barang = pgTable("barang", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -137,6 +144,14 @@ export const barang = pgTable("barang", {
   jumlahBaik: integer("jumlah_baik").notNull(),
   jumlahRusakRingan: integer("jumlah_rusak_ringan").notNull(),
   jumlahRusakBerat: integer("jumlah_rusak_berat").notNull(),
+  // Nullable meski wajib diisi di form (lihat barangBaseFieldsSchema) — barang
+  // lama dari sebelum kolom ini ada tidak punya nilainya, jadi tidak bisa
+  // NOT NULL tanpa backfill. Diwajibkan lagi saat barang lama itu di-edit.
+  tanggalMasuk: date("tanggal_masuk"),
+  sumberDana: barangSumberDanaEnum("sumber_dana"),
+  sumberDanaLainnya: text("sumber_dana_lainnya"),
+  periodeDana: text("periode_dana"),
+  nominalDana: integer("nominal_dana"),
   isArchived: boolean("is_archived").notNull().default(false),
   ...auditColumns,
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

@@ -12,20 +12,30 @@ import { syncBarangBreakdownFromUnits } from "@/lib/barang-unit";
 
 export type CreateBarangState = { error: string } | null;
 
-const barangBaseFieldsSchema = z.object({
-  nama: z.string().trim().min(1, "Nama barang wajib diisi"),
-  merkTipe: z.string().trim().optional(),
-  kode: z.string().trim().min(1, "Kode / No. Seri wajib diisi"),
-  kategori: z.string().trim().optional(),
-  spesifikasi: z.string().trim().optional(),
-  ruangId: z.uuid("Ruang wajib dipilih"),
-  subLokasiId: z.uuid().optional(),
-  modePelacakan: z.enum(["batch", "unit"]).default("batch"),
-  jumlahUnit: z.coerce.number().int().min(1, "Jumlah unit minimal 1"),
-  jumlahBaik: z.coerce.number().int().min(0).default(0),
-  jumlahRusakRingan: z.coerce.number().int().min(0).default(0),
-  jumlahRusakBerat: z.coerce.number().int().min(0).default(0),
-});
+const barangBaseFieldsSchema = z
+  .object({
+    nama: z.string().trim().min(1, "Nama barang wajib diisi"),
+    merkTipe: z.string().trim().optional(),
+    kode: z.string().trim().min(1, "Kode / No. Seri wajib diisi"),
+    kategori: z.string().trim().optional(),
+    spesifikasi: z.string().trim().optional(),
+    ruangId: z.uuid("Ruang wajib dipilih"),
+    subLokasiId: z.uuid().optional(),
+    modePelacakan: z.enum(["batch", "unit"]).default("batch"),
+    jumlahUnit: z.coerce.number().int().min(1, "Jumlah unit minimal 1"),
+    jumlahBaik: z.coerce.number().int().min(0).default(0),
+    jumlahRusakRingan: z.coerce.number().int().min(0).default(0),
+    jumlahRusakBerat: z.coerce.number().int().min(0).default(0),
+    tanggalMasuk: z.string().min(1, "Tanggal masuk wajib diisi"),
+    sumberDana: z.enum(["ssg", "bos", "komite_sekolah", "mandiri_yayasan", "lainnya"], "Sumber dana wajib dipilih"),
+    sumberDanaLainnya: z.string().trim().optional(),
+    periodeDana: z.string().trim().optional(),
+    nominalDana: z.coerce.number().int().min(0).optional(),
+  })
+  .refine((data) => data.sumberDana !== "lainnya" || !!data.sumberDanaLainnya, {
+    message: "Keterangan sumber dana wajib diisi untuk sumber dana \"Lainnya\".",
+    path: ["sumberDanaLainnya"],
+  });
 
 // Breakdown manual (Baik+RusakRingan+RusakBerat = JumlahUnit) hanya berlaku
 // untuk mode Batch — mode Per-Unit menghitungnya otomatis dari barang_unit
@@ -57,6 +67,11 @@ function readBarangFormFields(formData: FormData) {
     jumlahBaik: formData.get("jumlahBaik") || 0,
     jumlahRusakRingan: formData.get("jumlahRusakRingan") || 0,
     jumlahRusakBerat: formData.get("jumlahRusakBerat") || 0,
+    tanggalMasuk: formData.get("tanggalMasuk"),
+    sumberDana: formData.get("sumberDana"),
+    sumberDanaLainnya: formData.get("sumberDanaLainnya") || undefined,
+    periodeDana: formData.get("periodeDana") || undefined,
+    nominalDana: formData.get("nominalDana") || undefined,
   };
 }
 
@@ -121,6 +136,11 @@ export async function createBarangAction(
           jumlahBaik: data.jumlahBaik,
           jumlahRusakRingan: data.jumlahRusakRingan,
           jumlahRusakBerat: data.jumlahRusakBerat,
+          tanggalMasuk: data.tanggalMasuk,
+          sumberDana: data.sumberDana,
+          sumberDanaLainnya: data.sumberDana === "lainnya" ? data.sumberDanaLainnya || null : null,
+          periodeDana: data.periodeDana || null,
+          nominalDana: data.nominalDana ?? null,
           createdBy: actorId,
           updatedBy: actorId,
         })
@@ -219,6 +239,11 @@ export async function updateBarangAction(
         spesifikasi: data.spesifikasi || null,
         ruangId: data.ruangId,
         subLokasiId: data.subLokasiId ?? null,
+        tanggalMasuk: data.tanggalMasuk,
+        sumberDana: data.sumberDana,
+        sumberDanaLainnya: data.sumberDana === "lainnya" ? data.sumberDanaLainnya || null : null,
+        periodeDana: data.periodeDana || null,
+        nominalDana: data.nominalDana ?? null,
         // Breakdown mode "unit" dikelola lewat barang_unit (Issue 15/17), bukan
         // form ini — nilai existing di database dipertahankan apa adanya.
         ...(existing.modePelacakan === "batch"
