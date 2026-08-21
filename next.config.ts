@@ -1,14 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // CATATAN: sengaja TIDAK pakai output: "standalone". Server standalone
-  // Next.js menyajikan public/ dari manifest yang dihitung saat build —
-  // file baru yang ditambahkan ke public/uploads SETELAH build (yaitu semua
-  // foto yang di-upload user saat aplikasi jalan) akan 404 walau filenya
-  // benar-benar ada di disk. Ditemukan lewat verifikasi Docker sebelum
-  // deploy — lihat DEPLOYMENT.md. `next start` biasa (dipakai Dockerfile)
-  // menyajikan public/ langsung dari disk tiap request, jadi upload baru
-  // langsung bisa diakses.
+  // CATATAN: sengaja TIDAK pakai output: "standalone" (alasan historis, lihat
+  // DEPLOYMENT.md). Tapi baik standalone maupun `next start` biasa SAMA-SAMA
+  // men-snapshot isi public/ sekali saat server boot (lihat
+  // node_modules/next/dist/server/lib/router-utils/filesystem.js) — file yang
+  // ditambahkan ke public/uploads SETELAH boot (semua foto upload runtime)
+  // tetap 404 lewat static-file serving bawaan Next walau filenya ada di
+  // disk. Makanya foto di-serve lewat route handler
+  // src/app/uploads/[...path]/route.ts yang baca disk langsung tiap request,
+  // bukan mengandalkan public/ folder sama sekali.
   experimental: {
     serverActions: {
       // Default 1MB terlalu kecil — form Barang/Prasarana/Laporan Kerusakan
