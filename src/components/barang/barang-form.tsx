@@ -2,8 +2,8 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Info } from "@phosphor-icons/react";
-import { createBarangAction, updateBarangAction } from "@/app/(app)/barang/actions";
+import { Check, Info, X } from "@phosphor-icons/react";
+import { createBarangAction, deleteBarangFotoAction, updateBarangAction } from "@/app/(app)/barang/actions";
 import type { GedungNode } from "@/components/lokasi/location-explorer";
 import { LocationCascadeFields, type LocationCascadeInitial } from "@/components/barang/location-cascade-fields";
 import { PhotoUploadField } from "@/components/barang/photo-upload-field";
@@ -46,6 +46,25 @@ export function BarangForm({
 
   const totalKondisi = jumlahBaik + jumlahRusakRingan + jumlahRusakBerat;
   const totalCocok = useMemo(() => jumlahUnit > 0 && totalKondisi === jumlahUnit, [jumlahUnit, totalKondisi]);
+
+  const [existingPhotos, setExistingPhotos] = useState(initialData?.existingPhotos ?? []);
+  const [deletingPhotoId, setDeletingPhotoId] = useState<string | null>(null);
+
+  function handleDeletePhoto(fotoId: string) {
+    if (!confirm("Hapus foto ini?")) return;
+    setDeletingPhotoId(fotoId);
+    (async () => {
+      const formData = new FormData();
+      formData.set("fotoId", fotoId);
+      const result = await deleteBarangFotoAction(null, formData);
+      if (result && "error" in result) {
+        setError(result.error);
+      } else {
+        setExistingPhotos((prev) => prev.filter((foto) => foto.id !== fotoId));
+      }
+      setDeletingPhotoId(null);
+    })();
+  }
 
   function handleSubmit(formData: FormData) {
     setError(null);
@@ -221,16 +240,26 @@ export function BarangForm({
       </div>
 
       <Panel title="Foto Kondisi">
-        {initialData && initialData.existingPhotos.length > 0 && (
+        {isEdit && existingPhotos.length > 0 && (
           <div className="mb-3 flex flex-wrap gap-2">
-            {initialData.existingPhotos.map((foto) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={foto.id}
-                src={foto.path}
-                alt="Foto kondisi tersimpan"
-                className="size-14 rounded-lg border border-border object-cover"
-              />
+            {existingPhotos.map((foto) => (
+              <div key={foto.id} className="group relative size-14 flex-none overflow-hidden rounded-lg border border-border bg-surface-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={foto.path}
+                  alt="Foto kondisi tersimpan"
+                  className={`size-full object-cover ${deletingPhotoId === foto.id ? "opacity-40" : ""}`}
+                />
+                <button
+                  type="button"
+                  onClick={() => handleDeletePhoto(foto.id)}
+                  disabled={deletingPhotoId === foto.id}
+                  title="Hapus foto"
+                  className="absolute top-0.5 right-0.5 grid size-4.5 place-items-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100 disabled:opacity-100"
+                >
+                  <X size={11} />
+                </button>
+              </div>
             ))}
           </div>
         )}

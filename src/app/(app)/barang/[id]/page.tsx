@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, eq, sql } from "drizzle-orm";
-import { ArrowLeft, Image as ImageIcon, PencilSimple, QrCode } from "@phosphor-icons/react/dist/ssr";
+import { ArrowLeft, PencilSimple, QrCode } from "@phosphor-icons/react/dist/ssr";
 import { ArchiveBarangButton } from "@/components/barang/archive-barang-button";
 import { BarangHistoryTabs } from "@/components/barang/barang-history-tabs";
 import { BarangUnitList, type BarangUnitRow } from "@/components/barang/barang-unit-list";
+import { PhotoGallery } from "@/components/barang/photo-gallery";
 import { getLocationTree } from "@/lib/locations";
 import { getDipinjamUnitSet } from "@/lib/stok";
 import { db } from "@/db";
@@ -140,34 +141,7 @@ export default async function BarangDetailPage({ params }: { params: Promise<{ i
 
       <div className="grid grid-cols-1 items-start gap-5.5 p-6 lg:grid-cols-[340px_1fr]">
         <div className="flex flex-col gap-4">
-          {item.foto[0] ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={item.foto[0].path}
-              alt={`Foto kondisi ${item.nama}`}
-              className="h-50 w-full rounded-xl border border-border object-cover"
-            />
-          ) : (
-            <div className="grid h-50 place-items-center rounded-xl border border-dashed border-border bg-surface-2 text-faint">
-              <div className="text-center">
-                <ImageIcon size={34} />
-                <div className="mt-1.5 text-xs">Foto kondisi awal</div>
-              </div>
-            </div>
-          )}
-          {item.foto.length > 1 && (
-            <div className="flex flex-wrap gap-2">
-              {item.foto.slice(1).map((foto) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  key={foto.id}
-                  src={foto.path}
-                  alt={`Foto kondisi ${item.nama}`}
-                  className="size-14 rounded-lg border border-border object-cover"
-                />
-              ))}
-            </div>
-          )}
+          <PhotoGallery photos={item.foto} alt={`Foto kondisi ${item.nama}`} />
 
           <div className="rounded-xl border border-border bg-surface p-4.5">
             <h3 className="mb-3 text-sm font-semibold text-text">Kondisi terkini</h3>

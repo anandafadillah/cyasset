@@ -7,7 +7,7 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { barang, barangFoto, barangUnit, subLokasi } from "@/db/schema";
-import { saveUploadedImage } from "@/lib/uploads";
+import { deleteUploadedImage, saveUploadedImage } from "@/lib/uploads";
 import { syncBarangBreakdownFromUnits } from "@/lib/barang-unit";
 
 export type CreateBarangState = { error: string } | null;
@@ -251,6 +251,30 @@ export async function updateBarangAction(
   revalidatePath("/barang");
   revalidatePath(`/barang/${id}`);
   redirect(`/barang/${id}`);
+}
+
+export type DeleteBarangFotoState = { error: string } | { success: true } | null;
+
+export async function deleteBarangFotoAction(
+  _prevState: DeleteBarangFotoState,
+  formData: FormData,
+): Promise<DeleteBarangFotoState> {
+  const session = await auth();
+  if (!session?.user) return { error: "Sesi tidak valid." };
+
+  const fotoId = formData.get("fotoId");
+  if (typeof fotoId !== "string" || !fotoId) return { error: "Foto tidak ditemukan." };
+
+  const [foto] = await db.select().from(barangFoto).where(eq(barangFoto.id, fotoId)).limit(1);
+  if (!foto) return { error: "Foto tidak ditemukan." };
+
+  await db.delete(barangFoto).where(eq(barangFoto.id, fotoId));
+  await deleteUploadedImage(foto.path);
+
+  revalidatePath("/barang");
+  revalidatePath(`/barang/${foto.barangId}`);
+  revalidatePath(`/barang/${foto.barangId}/edit`);
+  return { success: true };
 }
 
 export type ArchiveBarangState = { error: string } | { success: true } | null;

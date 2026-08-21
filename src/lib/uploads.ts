@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "fs/promises";
+import { mkdir, unlink, writeFile } from "fs/promises";
 import path from "path";
 import { randomUUID } from "crypto";
 
@@ -33,4 +33,19 @@ export async function saveUploadedImage(file: File, subdir: string): Promise<Upl
   await writeFile(path.join(dir, filename), buffer);
 
   return { ok: true, url: `/uploads/${subdir}/${filename}` };
+}
+
+/**
+ * Hapus file foto dari disk berdasarkan url yang tersimpan di kolom `path`
+ * (mis. "/uploads/barang/xxx.jpg"). Best-effort — kalau filenya sudah tidak
+ * ada atau url-nya bukan di bawah uploads/, tidak dianggap error supaya
+ * penghapusan baris DB tetap bisa lanjut.
+ */
+export async function deleteUploadedImage(url: string): Promise<void> {
+  if (!url.startsWith("/uploads/")) return;
+
+  const filePath = path.join(UPLOAD_ROOT, url.slice("/uploads/".length));
+  if (!filePath.startsWith(UPLOAD_ROOT + path.sep)) return;
+
+  await unlink(filePath).catch(() => {});
 }
