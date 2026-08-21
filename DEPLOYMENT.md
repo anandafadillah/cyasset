@@ -102,6 +102,13 @@ Isi tiap nilai `<GANTI-...>`:
 
 ## 5. Build & jalankan stack
 
+Siapkan dulu folder upload di host dengan ownership yang cocok dengan user `nextjs` (uid 1001) di dalam container — folder ini di-*bind mount* lewat `docker-compose.prod.yml`, jadi ownership host-lah yang berlaku saat runtime, bukan `chown` di Dockerfile:
+
+```bash
+mkdir -p uploads
+sudo chown -R 1001:1001 uploads
+```
+
 ```bash
 docker compose -f docker-compose.prod.yml up -d --build
 ```
@@ -332,6 +339,14 @@ Cek image di server dibuat dari Dockerfile yang **tidak** memakai `output: "stan
 
 **`docker compose run --rm tools db:migrate` gagal "connection refused":**
 Container `db` belum *healthy*. Jalankan `docker compose -f docker-compose.prod.yml ps` — tunggu status `db` jadi `healthy`, baru ulangi.
+
+**Upload foto gagal / error `EACCES: permission denied, mkdir '/app/public/uploads/...'` atau `.next/cache/images`:**
+Folder `uploads` di host tidak dimiliki uid yang sama dengan user `nextjs` (1001) di dalam container — bind mount membawa ownership host apa adanya, jadi `chown` di image (Dockerfile) tidak berlaku untuk folder ini. Perbaiki:
+```bash
+sudo chown -R 1001:1001 /opt/cyasset/uploads
+docker compose -f docker-compose.prod.yml restart app
+```
+Kalau errornya ada di `.next/cache/images` (bukan `uploads`), berarti image lama (`COPY` tanpa `--chown`) masih dipakai — `git pull` lalu `docker compose -f docker-compose.prod.yml up -d --build app` untuk rebuild dengan Dockerfile terbaru.
 
 **Perlu masuk ke database langsung (debug manual):**
 ```bash

@@ -36,10 +36,13 @@ ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/next.config.ts ./next.config.ts
+# --chown wajib di sini: tanpa ini COPY bikin file jadi milik root, sedangkan
+# container jalan sebagai user nextjs (uid 1001) — next/image butuh tulis ke
+# .next/cache/images saat runtime, kalau ownership root itu gagal EACCES.
+COPY --chown=nextjs:nodejs --from=builder /app/.next ./.next
+COPY --chown=nextjs:nodejs --from=builder /app/public ./public
+COPY --chown=nextjs:nodejs --from=builder /app/package.json ./package.json
+COPY --chown=nextjs:nodejs --from=builder /app/next.config.ts ./next.config.ts
 
 # Folder foto upload (modul Barang/Prasarana) — di-mount sebagai volume lewat
 # docker-compose.prod.yml supaya persist & langsung tersaji tanpa rebuild.
