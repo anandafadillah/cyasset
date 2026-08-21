@@ -132,8 +132,10 @@ Tunggu sampai log menunjukkan `✓ Ready` lalu `Ctrl+C` untuk keluar dari `logs 
 ## 6. Jalankan migrasi database
 
 ```bash
-docker compose -f docker-compose.prod.yml run --rm tools db:migrate
+docker compose -f docker-compose.prod.yml run --build --rm tools db:migrate
 ```
+
+`--build` wajib — image `tools` (target `builder`) beda dari image `app` dan tidak ikut ke-rebuild otomatis oleh perintah `up` di langkah 5, jadi tanpa `--build` migrasi bisa jalan pakai source code lama.
 
 Harus berakhir dengan `[✓] migrations applied successfully!`.
 
@@ -319,7 +321,7 @@ Setiap ada perubahan baru di repo GitHub:
 cd /opt/cyasset
 git pull origin main
 docker compose -f docker-compose.prod.yml up -d --build app
-docker compose -f docker-compose.prod.yml run --rm tools db:migrate
+docker compose -f docker-compose.prod.yml run --build --rm tools db:migrate
 ```
 
 `db` tidak perlu di-restart (datanya persisten di volume `cyasset_pgdata`). Kalau ada migrasi skema baru, langkah `db:migrate` di atas akan menerapkannya (aman dijalankan berkali-kali — migrasi yang sudah diterapkan otomatis dilewati).
@@ -339,6 +341,12 @@ Cek image di server dibuat dari Dockerfile yang **tidak** memakai `output: "stan
 
 **`docker compose run --rm tools db:migrate` gagal "connection refused":**
 Container `db` belum *healthy*. Jalankan `docker compose -f docker-compose.prod.yml ps` — tunggu status `db` jadi `healthy`, baru ulangi.
+
+**App error `column ... does not exist` padahal `db:migrate` sudah dijalankan dan sukses:**
+Image `tools` masih versi lama — `run --rm tools ...` TIDAK otomatis rebuild image itu (beda target/image dari `app`, tidak ikut ke-rebuild oleh `up -d --build app`), jadi migrasi barunya tidak pernah benar-benar diterapkan meski perintahnya "berhasil". Ulangi dengan `--build`:
+```bash
+docker compose -f docker-compose.prod.yml run --build --rm tools db:migrate
+```
 
 **Upload foto gagal / error `EACCES: permission denied, mkdir '/app/public/uploads/...'` atau `.next/cache/images`:**
 Folder `uploads` di host tidak dimiliki uid yang sama dengan user `nextjs` (1001) di dalam container — bind mount membawa ownership host apa adanya, jadi `chown` di image (Dockerfile) tidak berlaku untuk folder ini. Perbaiki:

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { MagnifyingGlass, MapPin, Pulse, Tag } from "@phosphor-icons/react";
+import { CalendarBlank, MagnifyingGlass, MapPin, Pulse, Tag } from "@phosphor-icons/react";
 
 export type LokasiOption = { id: string; label: string };
 
@@ -81,6 +81,51 @@ export function BarangFilters({
           value: option.value,
           label: option.value === "" ? "Kondisi: Semua" : option.label,
         }))}
+      />
+
+      <DateRangeFilter
+        icon={<CalendarBlank size={15} className="text-muted" />}
+        label="Tanggal Masuk"
+        dari={searchParams.get("dari") ?? ""}
+        sampai={searchParams.get("sampai") ?? ""}
+        onChangeDari={(value) => updateParam("dari", value)}
+        onChangeSampai={(value) => updateParam("sampai", value)}
+      />
+    </div>
+  );
+}
+
+function DateRangeFilter({
+  icon,
+  label,
+  dari,
+  sampai,
+  onChangeDari,
+  onChangeSampai,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  dari: string;
+  sampai: string;
+  onChangeDari: (value: string) => void;
+  onChangeSampai: (value: string) => void;
+}) {
+  return (
+    <div className="flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text">
+      {icon}
+      <span className="text-dim">{label}:</span>
+      <input
+        type="date"
+        value={dari}
+        onChange={(event) => onChangeDari(event.target.value)}
+        className="bg-transparent outline-none"
+      />
+      <span className="text-dim">–</span>
+      <input
+        type="date"
+        value={sampai}
+        onChange={(event) => onChangeSampai(event.target.value)}
+        className="bg-transparent outline-none"
       />
     </div>
   );

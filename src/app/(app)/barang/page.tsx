@@ -1,17 +1,21 @@
 import Link from "next/link";
-import { and, asc, eq, gt, ilike, or, sql } from "drizzle-orm";
+import { and, asc, eq, gt, gte, ilike, lte, or, sql } from "drizzle-orm";
 import { DesktopTower, DownloadSimple, Plus } from "@phosphor-icons/react/dist/ssr";
 import { Topbar } from "@/components/layout/topbar";
 import { ConditionBar } from "@/components/barang/condition-bar";
 import { BarangFilters, type LokasiOption } from "@/components/barang/barang-filters";
 import { BarangRowMenu } from "@/components/barang/barang-row-menu";
 import { BarangTableRow } from "@/components/barang/barang-table-row";
+import { buildSortHref, SortableTh, type SortState } from "@/components/ui/sortable-th";
 import { getLocationTree } from "@/lib/locations";
+import { formatTanggalPendek } from "@/lib/prasarana-format";
 import { getDipinjamMap } from "@/lib/stok";
 import { db } from "@/db";
 import { barang } from "@/db/schema";
 
 const PAGE_SIZE = 10;
+
+const SORTABLE_COLUMNS = ["nama", "kategori", "jumlahUnit", "tanggalMasuk"] as const;
 
 export default async function BarangPage({
   searchParams,
@@ -23,7 +27,15 @@ export default async function BarangPage({
   const kategori = typeof params.kategori === "string" ? params.kategori : "";
   const lokasi = typeof params.lokasi === "string" ? params.lokasi : "";
   const kondisi = typeof params.kondisi === "string" ? params.kondisi : "";
+  const tanggalMasukDari = typeof params.dari === "string" ? params.dari : "";
+  const tanggalMasukSampai = typeof params.sampai === "string" ? params.sampai : "";
   const page = Math.max(1, Number(params.page) || 1);
+
+  const sortParam = typeof params.sort === "string" ? params.sort : "";
+  const sortState: SortState = {
+    sort: (SORTABLE_COLUMNS as readonly string[]).includes(sortParam) ? sortParam : "",
+    dir: params.dir === "asc" ? "asc" : "desc",
+  };
 
   const conditions = [eq(barang.isArchived, false)];
   if (q) {
@@ -36,13 +48,29 @@ export default async function BarangPage({
   if (kondisi === "rusak-ringan") conditions.push(gt(barang.jumlahRusakRingan, 0));
   if (kondisi === "rusak-berat") conditions.push(gt(barang.jumlahRusakBerat, 0));
   if (kondisi === "baik-semua") conditions.push(sql`${barang.jumlahBaik} = ${barang.jumlahUnit}`);
+  if (tanggalMasukDari) conditions.push(gte(barang.tanggalMasuk, tanggalMasukDari));
+  if (tanggalMasukSampai) conditions.push(lte(barang.tanggalMasuk, tanggalMasukSampai));
 
   const where = and(...conditions);
 
   const [rows, [{ total }], [{ totalUnit }], gedungList, kategoriRows, dipinjamMap] = await Promise.all([
     db.query.barang.findMany({
       where,
-      orderBy: (table, { desc }) => desc(table.createdAt),
+      orderBy: (table, { asc, desc }) => {
+        const dir = sortState.dir === "asc" ? asc : desc;
+        switch (sortState.sort) {
+          case "nama":
+            return dir(table.nama);
+          case "kategori":
+            return dir(table.kategori);
+          case "jumlahUnit":
+            return dir(table.jumlahUnit);
+          case "tanggalMasuk":
+            return dir(table.tanggalMasuk);
+          default:
+            return desc(table.createdAt);
+        }
+      },
       limit: PAGE_SIZE,
       offset: (page - 1) * PAGE_SIZE,
       with: { ruang: { with: { lantai: { with: { gedung: true } } } }, subLokasi: true },
@@ -100,19 +128,45 @@ export default async function BarangPage({
             <table className="w-full text-[13.5px]">
               <thead>
                 <tr className="border-b border-border text-left text-xs text-dim">
-                  <th className="py-3 pl-4.5 font-medium">Barang</th>
-                  <th className="py-3 font-medium">Kategori</th>
+                  <SortableTh
+                    href={buildSortHref("/barang", params, sortState, "nama")}
+                    active={sortState.sort === "nama"}
+                    direction={sortState.dir}
+                    className="pl-4.5"
+                  >
+                    Barang
+                  </SortableTh>
+                  <SortableTh
+                    href={buildSortHref("/barang", params, sortState, "kategori")}
+                    active={sortState.sort === "kategori"}
+                    direction={sortState.dir}
+                  >
+                    Kategori
+                  </SortableTh>
                   <th className="py-3 font-medium">Lokasi</th>
-                  <th className="py-3 font-medium">Jumlah</th>
+                  <SortableTh
+                    href={buildSortHref("/barang", params, sortState, "jumlahUnit")}
+                    active={sortState.sort === "jumlahUnit"}
+                    direction={sortState.dir}
+                  >
+                    Jumlah
+                  </SortableTh>
                   <th className="w-45 py-3 font-medium">Kondisi</th>
                   <th className="py-3 font-medium">Tersedia</th>
+                  <SortableTh
+                    href={buildSortHref("/barang", params, sortState, "tanggalMasuk")}
+                    active={sortState.sort === "tanggalMasuk"}
+                    direction={sortState.dir}
+                  >
+                    Tanggal Masuk
+                  </SortableTh>
                   <th className="py-3 pr-4.5" />
                 </tr>
               </thead>
               <tbody>
                 {rows.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="py-10 text-center text-sm text-dim">
+                    <td colSpan={8} className="py-10 text-center text-sm text-dim">
                       Tidak ada barang yang cocok dengan pencarian/filter ini.
                     </td>
                   </tr>
@@ -163,6 +217,9 @@ export default async function BarangPage({
                       </td>
                       <td className="py-3 text-text">
                         {Math.max(0, row.jumlahBaik - (dipinjamMap.get(row.id) ?? 0))}
+                      </td>
+                      <td className="py-3 text-text">
+                        {row.tanggalMasuk ? formatTanggalPendek(row.tanggalMasuk) : "—"}
                       </td>
                       <td className="py-3 pr-4.5 text-right">
                         <BarangRowMenu id={row.id} nama={row.nama} />
