@@ -14,14 +14,34 @@ export default async function PublicBarangPage({ params }: { params: Promise<{ i
       ruang: { with: { lantai: { with: { gedung: true } } } },
       subLokasi: true,
       foto: { orderBy: (table, { asc }) => asc(table.createdAt) },
+      lokasi: {
+        orderBy: (table, { asc }) => asc(table.urutan),
+        with: { ruang: { with: { lantai: { with: { gedung: true } } } }, subLokasi: true },
+      },
     },
   });
 
   if (!item || item.isArchived) notFound();
 
-  const lokasiLabel = `${item.ruang.lantai.gedung.nama} · ${item.ruang.lantai.nama} · ${item.ruang.nama}${
-    item.subLokasi ? ` · ${item.subLokasi.nama}` : ""
-  }`;
+  const isMultiLokasi = item.lokasi.length > 1;
+  const lokasiValue = isMultiLokasi ? (
+    <div className="flex flex-col gap-1.5">
+      {item.lokasi.map((row) => (
+        <div key={row.id} className="flex items-center justify-between gap-2">
+          <span>
+            {row.ruang.nama}
+            {row.subLokasi ? ` · ${row.subLokasi.nama}` : ""}
+            <span className="text-dim"> — Ged. {row.ruang.lantai.gedung.nama} · Lt. {row.ruang.lantai.nama}</span>
+          </span>
+          <span className="flex-none font-medium text-text">{row.jumlah} unit</span>
+        </div>
+      ))}
+    </div>
+  ) : (
+    `${item.ruang.lantai.gedung.nama} · ${item.ruang.lantai.nama} · ${item.ruang.nama}${
+      item.subLokasi ? ` · ${item.subLokasi.nama}` : ""
+    }`
+  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -72,7 +92,7 @@ export default async function PublicBarangPage({ params }: { params: Promise<{ i
 
       <PublicPanel title="Detail">
         <div className="grid grid-cols-1 gap-3.5 text-sm sm:grid-cols-2">
-          <PublicField label="Lokasi" value={lokasiLabel} className="sm:col-span-2" />
+          <PublicField label="Lokasi" value={lokasiValue} className="sm:col-span-2" />
           <PublicField label="Spesifikasi Teknis" value={item.spesifikasi || "—"} className="sm:col-span-2" />
         </div>
       </PublicPanel>

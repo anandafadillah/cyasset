@@ -21,6 +21,10 @@ export default async function BarangDetailPage({ params }: { params: Promise<{ i
       ruang: { with: { lantai: { with: { gedung: true } } } },
       subLokasi: true,
       foto: { orderBy: (table, { asc }) => asc(table.createdAt) },
+      lokasi: {
+        orderBy: (table, { asc }) => asc(table.urutan),
+        with: { ruang: { with: { lantai: { with: { gedung: true } } } }, subLokasi: true },
+      },
     },
   });
 
@@ -94,9 +98,12 @@ export default async function BarangDetailPage({ params }: { params: Promise<{ i
       .orderBy(sql`${laporanKerusakan.createdAt} desc`),
   ]);
 
-  const lokasiLabel = `${item.ruang.lantai.gedung.nama} · ${item.ruang.lantai.nama} · ${item.ruang.nama}${
-    item.subLokasi ? ` · ${item.subLokasi.nama}` : ""
-  }`;
+  const isMultiLokasi = !isUnitMode && item.lokasi.length > 1;
+  const lokasiLabel = isMultiLokasi
+    ? `${item.lokasi.length} lokasi — lihat rincian di bawah`
+    : `${item.ruang.lantai.gedung.nama} · ${item.ruang.lantai.nama} · ${item.ruang.nama}${
+        item.subLokasi ? ` · ${item.subLokasi.nama}` : ""
+      }`;
   const tanggalDitambahkan = item.createdAt.toLocaleDateString("id-ID", {
     day: "numeric",
     month: "short",
@@ -221,6 +228,44 @@ export default async function BarangDetailPage({ params }: { params: Promise<{ i
         <div className="px-6 pb-6">
           <h3 className="mb-3 text-sm font-semibold text-text">Unit Fisik ({units.length})</h3>
           <BarangUnitList barangId={item.id} units={units} gedungList={gedungList} />
+        </div>
+      )}
+
+      {isMultiLokasi && (
+        <div className="px-6 pb-6">
+          <h3 className="mb-3 text-sm font-semibold text-text">Lokasi & Kondisi ({item.lokasi.length})</h3>
+          <div className="overflow-hidden rounded-xl border border-border bg-surface">
+            <div className="overflow-x-auto">
+              <table className="w-full text-[13.5px]">
+                <thead>
+                  <tr className="border-b border-border text-left text-xs text-dim">
+                    <th className="py-3 pl-4.5 font-medium">Lokasi</th>
+                    <th className="py-3 font-medium">Jumlah</th>
+                    <th className="py-3 font-medium">Baik</th>
+                    <th className="py-3 font-medium">Rusak Ringan</th>
+                    <th className="py-3 pr-4.5 font-medium">Rusak Berat</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {item.lokasi.map((row) => (
+                    <tr key={row.id} className="border-b border-border last:border-0">
+                      <td className="py-3 pl-4.5 text-text">
+                        {row.ruang.nama}
+                        {row.subLokasi ? ` · ${row.subLokasi.nama}` : ""}
+                        <div className="text-[11px] text-dim">
+                          Ged. {row.ruang.lantai.gedung.nama} · Lt. {row.ruang.lantai.nama}
+                        </div>
+                      </td>
+                      <td className="py-3 font-semibold text-text">{row.jumlah}</td>
+                      <td className="py-3 text-good">{row.jumlahBaik}</td>
+                      <td className="py-3 text-warn">{row.jumlahRusakRingan}</td>
+                      <td className="py-3 pr-4.5 text-danger">{row.jumlahRusakBerat}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       )}
 

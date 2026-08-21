@@ -6,12 +6,18 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
-import { barang, barangFoto, barangUnit, subLokasi } from "@/db/schema";
+import { barang, barangFoto, barangLokasi, barangUnit, subLokasi } from "@/db/schema";
 import { deleteUploadedImage, saveUploadedImage } from "@/lib/uploads";
 import { syncBarangBreakdownFromUnits } from "@/lib/barang-unit";
+import { syncBarangBreakdownFromLokasi } from "@/lib/barang-lokasi";
 
 export type CreateBarangState = { error: string } | null;
 
+// Field umum, tidak tergantung mode pelacakan. Lokasi & jumlah/kondisi
+// ditangani terpisah di bawah karena bentuknya beda total antar mode:
+// Unit pakai 1 ruangId/subLokasiId/jumlahUnit tunggal (breakdown dihitung
+// dari barang_unit), Batch pakai daftar baris lokasi (breakdown dihitung
+// dari barang_lokasi, lihat parseLokasiBaris & syncBarangBreakdownFromLokasi).
 const barangBaseFieldsSchema = z
   .object({
     nama: z.string().trim().min(1, "Nama barang wajib diisi"),
@@ -19,13 +25,7 @@ const barangBaseFieldsSchema = z
     kode: z.string().trim().min(1, "Kode / No. Seri wajib diisi"),
     kategori: z.string().trim().optional(),
     spesifikasi: z.string().trim().optional(),
-    ruangId: z.uuid("Ruang wajib dipilih"),
-    subLokasiId: z.uuid().optional(),
     modePelacakan: z.enum(["batch", "unit"]).default("batch"),
-    jumlahUnit: z.coerce.number().int().min(1, "Jumlah unit minimal 1"),
-    jumlahBaik: z.coerce.number().int().min(0).default(0),
-    jumlahRusakRingan: z.coerce.number().int().min(0).default(0),
-    jumlahRusakBerat: z.coerce.number().int().min(0).default(0),
     tanggalMasuk: z.string().min(1, "Tanggal masuk wajib diisi"),
     sumberDana: z.enum(["ssg", "bos", "komite_sekolah", "mandiri_yayasan", "lainnya"], "Sumber dana wajib dipilih"),
     sumberDanaLainnya: z.string().trim().optional(),
@@ -37,20 +37,10 @@ const barangBaseFieldsSchema = z
     path: ["sumberDanaLainnya"],
   });
 
-// Breakdown manual (Baik+RusakRingan+RusakBerat = JumlahUnit) hanya berlaku
-// untuk mode Batch — mode Per-Unit menghitungnya otomatis dari barang_unit
-// (lihat syncBarangBreakdownFromUnits), admin cuma isi jumlah unit awal.
-const createBarangSchema = barangBaseFieldsSchema.superRefine((data, ctx) => {
-  if (
-    data.modePelacakan === "batch" &&
-    data.jumlahBaik + data.jumlahRusakRingan + data.jumlahRusakBerat !== data.jumlahUnit
-  ) {
-    ctx.addIssue({
-      code: "custom",
-      message: "Jumlah Baik + Rusak Ringan + Rusak Berat harus sama dengan Jumlah Unit.",
-      path: ["jumlahUnit"],
-    });
-  }
+const unitModeLocationSchema = z.object({
+  ruangId: z.uuid("Ruang wajib dipilih"),
+  subLokasiId: z.uuid().optional(),
+  jumlahUnit: z.coerce.number().int().min(1, "Jumlah unit minimal 1"),
 });
 
 function readBarangFormFields(formData: FormData) {
@@ -60,19 +50,91 @@ function readBarangFormFields(formData: FormData) {
     kode: formData.get("kode"),
     kategori: formData.get("kategori") || undefined,
     spesifikasi: formData.get("spesifikasi") || undefined,
-    ruangId: formData.get("ruangId") || undefined,
-    subLokasiId: formData.get("subLokasiId") || undefined,
     modePelacakan: formData.get("modePelacakan") || undefined,
-    jumlahUnit: formData.get("jumlahUnit"),
-    jumlahBaik: formData.get("jumlahBaik") || 0,
-    jumlahRusakRingan: formData.get("jumlahRusakRingan") || 0,
-    jumlahRusakBerat: formData.get("jumlahRusakBerat") || 0,
     tanggalMasuk: formData.get("tanggalMasuk"),
     sumberDana: formData.get("sumberDana"),
     sumberDanaLainnya: formData.get("sumberDanaLainnya") || undefined,
     periodeDana: formData.get("periodeDana") || undefined,
     nominalDana: formData.get("nominalDana") || undefined,
   };
+}
+
+type LokasiBaris = {
+  ruangId: string;
+  subLokasiId: string | null;
+  jumlah: number;
+  jumlahBaik: number;
+  jumlahRusakRingan: number;
+  jumlahRusakBerat: number;
+};
+
+/**
+ * Baris lokasi mode Batch dikirim sebagai field berulang (satu <input> per
+ * baris per kolom, nama field sama — lihat BarangForm) karena FormData tidak
+ * punya notasi array/objek asli. Di-zip berdasarkan index yang sama.
+ */
+function parseLokasiBaris(formData: FormData): { data: LokasiBaris[] } | { error: string } {
+  const ruangIds = formData.getAll("lokasiRuangId").map(String);
+  const subLokasiIds = formData.getAll("lokasiSubLokasiId").map(String);
+  const jumlahs = formData.getAll("lokasiJumlah").map(String);
+  const baiks = formData.getAll("lokasiBaik").map(String);
+  const rusakRingans = formData.getAll("lokasiRusakRingan").map(String);
+  const rusakBerats = formData.getAll("lokasiRusakBerat").map(String);
+
+  if (ruangIds.length === 0) return { error: "Minimal 1 lokasi wajib diisi." };
+
+  const rows: LokasiBaris[] = [];
+  const seen = new Set<string>();
+
+  for (let i = 0; i < ruangIds.length; i++) {
+    const label = `Lokasi baris ${i + 1}`;
+    const ruangId = ruangIds[i];
+    if (!z.uuid().safeParse(ruangId).success) return { error: `${label}: Ruang wajib dipilih.` };
+
+    const subLokasiId = subLokasiIds[i] || null;
+    if (subLokasiId && !z.uuid().safeParse(subLokasiId).success) {
+      return { error: `${label}: Sub-lokasi tidak valid.` };
+    }
+
+    const jumlah = Number(jumlahs[i]);
+    const jumlahBaik = Number(baiks[i] || 0);
+    const jumlahRusakRingan = Number(rusakRingans[i] || 0);
+    const jumlahRusakBerat = Number(rusakBerats[i] || 0);
+
+    if (!Number.isInteger(jumlah) || jumlah < 1) return { error: `${label}: Jumlah minimal 1.` };
+    if (
+      !Number.isInteger(jumlahBaik) ||
+      jumlahBaik < 0 ||
+      !Number.isInteger(jumlahRusakRingan) ||
+      jumlahRusakRingan < 0 ||
+      !Number.isInteger(jumlahRusakBerat) ||
+      jumlahRusakBerat < 0
+    ) {
+      return { error: `${label}: Jumlah kondisi tidak valid.` };
+    }
+    if (jumlahBaik + jumlahRusakRingan + jumlahRusakBerat !== jumlah) {
+      return { error: `${label}: Baik + Rusak Ringan + Rusak Berat harus sama dengan Jumlah.` };
+    }
+
+    const key = `${ruangId}::${subLokasiId ?? ""}`;
+    if (seen.has(key)) return { error: `${label}: lokasi ini sudah dipakai di baris lain.` };
+    seen.add(key);
+
+    rows.push({ ruangId, subLokasiId, jumlah, jumlahBaik, jumlahRusakRingan, jumlahRusakBerat });
+  }
+
+  return { data: rows };
+}
+
+async function validateLokasiBarisSubLokasi(rows: LokasiBaris[]): Promise<string | null> {
+  for (const [i, row] of rows.entries()) {
+    if (!row.subLokasiId) continue;
+    const [sub] = await db.select().from(subLokasi).where(eq(subLokasi.id, row.subLokasiId)).limit(1);
+    if (!sub || sub.ruangId !== row.ruangId) {
+      return `Lokasi baris ${i + 1}: Sub-lokasi tidak sesuai dengan Ruang yang dipilih.`;
+    }
+  }
+  return null;
 }
 
 function readPhotoFiles(formData: FormData): File[] {
@@ -91,6 +153,31 @@ function validatePhotoFiles(files: File[]): string | null {
   return null;
 }
 
+async function savePhotos(barangId: string, photoFiles: File[]) {
+  for (const file of photoFiles) {
+    const result = await saveUploadedImage(file, "barang");
+    if (result.ok) {
+      await db.insert(barangFoto).values({ barangId, path: result.url });
+    }
+  }
+}
+
+const DUPLICATE_KODE_ERROR = "Kode / No. Seri sudah dipakai barang lain.";
+
+async function runOrDuplicateKodeError<T>(
+  fn: () => Promise<T>,
+): Promise<{ ok: true; value: T } | { ok: false; error: string }> {
+  try {
+    return { ok: true, value: await fn() };
+  } catch (error) {
+    const cause = error instanceof Error ? error.cause : undefined;
+    if ((cause as { code?: string } | undefined)?.code === "23505") {
+      return { ok: false, error: DUPLICATE_KODE_ERROR };
+    }
+    throw error;
+  }
+}
+
 export async function createBarangAction(
   _prevState: CreateBarangState,
   formData: FormData,
@@ -98,96 +185,137 @@ export async function createBarangAction(
   const session = await auth();
   if (!session?.user) return { error: "Sesi tidak valid." };
 
-  const parsed = createBarangSchema.safeParse(readBarangFormFields(formData));
+  const parsed = barangBaseFieldsSchema.safeParse(readBarangFormFields(formData));
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Data tidak valid." };
   }
-
   const data = parsed.data;
-
-  if (data.subLokasiId) {
-    const [sub] = await db.select().from(subLokasi).where(eq(subLokasi.id, data.subLokasiId)).limit(1);
-    if (!sub || sub.ruangId !== data.ruangId) {
-      return { error: "Sub-lokasi tidak sesuai dengan Ruang yang dipilih." };
-    }
-  }
 
   const photoFiles = readPhotoFiles(formData);
   const photoError = validatePhotoFiles(photoFiles);
   if (photoError) return { error: photoError };
 
   const actorId = session.user.id;
+  const commonValues = {
+    nama: data.nama,
+    merkTipe: data.merkTipe || null,
+    kode: data.kode,
+    kategori: data.kategori || null,
+    spesifikasi: data.spesifikasi || null,
+    tanggalMasuk: data.tanggalMasuk,
+    sumberDana: data.sumberDana,
+    sumberDanaLainnya: data.sumberDana === "lainnya" ? data.sumberDanaLainnya || null : null,
+    periodeDana: data.periodeDana || null,
+    nominalDana: data.nominalDana ?? null,
+    createdBy: actorId,
+    updatedBy: actorId,
+  };
 
   let newBarangId: string;
-  try {
-    newBarangId = await db.transaction(async (tx) => {
-      const [created] = await tx
-        .insert(barang)
-        .values({
-          nama: data.nama,
-          merkTipe: data.merkTipe || null,
-          kode: data.kode,
-          kategori: data.kategori || null,
-          spesifikasi: data.spesifikasi || null,
-          ruangId: data.ruangId,
-          subLokasiId: data.subLokasiId ?? null,
-          modePelacakan: data.modePelacakan,
-          jumlahUnit: data.jumlahUnit,
-          jumlahBaik: data.jumlahBaik,
-          jumlahRusakRingan: data.jumlahRusakRingan,
-          jumlahRusakBerat: data.jumlahRusakBerat,
-          tanggalMasuk: data.tanggalMasuk,
-          sumberDana: data.sumberDana,
-          sumberDanaLainnya: data.sumberDana === "lainnya" ? data.sumberDanaLainnya || null : null,
-          periodeDana: data.periodeDana || null,
-          nominalDana: data.nominalDana ?? null,
-          createdBy: actorId,
-          updatedBy: actorId,
-        })
-        .returning({ id: barang.id });
 
-      if (data.modePelacakan === "unit") {
+  if (data.modePelacakan === "unit") {
+    const unitParsed = unitModeLocationSchema.safeParse({
+      ruangId: formData.get("ruangId") || undefined,
+      subLokasiId: formData.get("subLokasiId") || undefined,
+      jumlahUnit: formData.get("jumlahUnit"),
+    });
+    if (!unitParsed.success) {
+      return { error: unitParsed.error.issues[0]?.message ?? "Data tidak valid." };
+    }
+    const unitData = unitParsed.data;
+
+    if (unitData.subLokasiId) {
+      const [sub] = await db.select().from(subLokasi).where(eq(subLokasi.id, unitData.subLokasiId)).limit(1);
+      if (!sub || sub.ruangId !== unitData.ruangId) {
+        return { error: "Sub-lokasi tidak sesuai dengan Ruang yang dipilih." };
+      }
+    }
+
+    const result = await runOrDuplicateKodeError(() =>
+      db.transaction(async (tx) => {
+        const [created] = await tx
+          .insert(barang)
+          .values({
+            ...commonValues,
+            ruangId: unitData.ruangId,
+            subLokasiId: unitData.subLokasiId ?? null,
+            modePelacakan: "unit",
+            jumlahUnit: unitData.jumlahUnit,
+            jumlahBaik: 0,
+            jumlahRusakRingan: 0,
+            jumlahRusakBerat: 0,
+          })
+          .returning({ id: barang.id });
+
         await tx.insert(barangUnit).values(
-          Array.from({ length: data.jumlahUnit }, (_, i) => ({
+          Array.from({ length: unitData.jumlahUnit }, (_, i) => ({
             barangId: created.id,
             subKode: `${data.kode}-U${i + 1}`,
-            ruangId: data.ruangId,
-            subLokasiId: data.subLokasiId ?? null,
+            ruangId: unitData.ruangId,
+            subLokasiId: unitData.subLokasiId ?? null,
             createdBy: actorId,
             updatedBy: actorId,
           })),
         );
         await syncBarangBreakdownFromUnits(created.id, tx);
-      }
+        return created.id;
+      }),
+    );
+    if (!result.ok) return { error: result.error };
+    newBarangId = result.value;
+  } else {
+    const lokasiParsed = parseLokasiBaris(formData);
+    if ("error" in lokasiParsed) return { error: lokasiParsed.error };
+    const subLokasiError = await validateLokasiBarisSubLokasi(lokasiParsed.data);
+    if (subLokasiError) return { error: subLokasiError };
 
-      return created.id;
-    });
-  } catch (error) {
-    const cause = error instanceof Error ? error.cause : undefined;
-    if ((cause as { code?: string } | undefined)?.code === "23505") {
-      return { error: "Kode / No. Seri sudah dipakai barang lain." };
-    }
-    throw error;
+    const result = await runOrDuplicateKodeError(() =>
+      db.transaction(async (tx) => {
+        const [created] = await tx
+          .insert(barang)
+          .values({
+            ...commonValues,
+            // Sementara — langsung ditimpa oleh syncBarangBreakdownFromLokasi
+            // di bawah begitu baris barang_lokasi-nya ada.
+            ruangId: lokasiParsed.data[0].ruangId,
+            subLokasiId: lokasiParsed.data[0].subLokasiId,
+            modePelacakan: "batch",
+            jumlahUnit: 0,
+            jumlahBaik: 0,
+            jumlahRusakRingan: 0,
+            jumlahRusakBerat: 0,
+          })
+          .returning({ id: barang.id });
+
+        await tx.insert(barangLokasi).values(
+          lokasiParsed.data.map((row, i) => ({
+            barangId: created.id,
+            ruangId: row.ruangId,
+            subLokasiId: row.subLokasiId,
+            urutan: i,
+            jumlah: row.jumlah,
+            jumlahBaik: row.jumlahBaik,
+            jumlahRusakRingan: row.jumlahRusakRingan,
+            jumlahRusakBerat: row.jumlahRusakBerat,
+            createdBy: actorId,
+            updatedBy: actorId,
+          })),
+        );
+        await syncBarangBreakdownFromLokasi(created.id, tx);
+        return created.id;
+      }),
+    );
+    if (!result.ok) return { error: result.error };
+    newBarangId = result.value;
   }
 
-  for (const file of photoFiles) {
-    const result = await saveUploadedImage(file, "barang");
-    if (result.ok) {
-      await db.insert(barangFoto).values({ barangId: newBarangId, path: result.url });
-    }
-  }
+  await savePhotos(newBarangId, photoFiles);
 
   revalidatePath("/barang");
   redirect("/barang");
 }
 
 export type UpdateBarangState = { error: string } | null;
-
-// Breakdown manual (jumlahUnit/Baik/RusakRingan/RusakBerat) dari form hanya
-// divalidasi longgar di sini (tanpa cek total) — cek total = jumlahUnit
-// dilakukan manual di bawah, hanya kalau barang existing bermode Batch, karena
-// untuk mode Unit nilai-nilai itu diabaikan sepenuhnya (dikelola via barang_unit).
-const updateBarangSchema = barangBaseFieldsSchema;
 
 export async function updateBarangAction(
   _prevState: UpdateBarangState,
@@ -202,76 +330,92 @@ export async function updateBarangAction(
   const [existing] = await db.select().from(barang).where(eq(barang.id, id)).limit(1);
   if (!existing) return { error: "Barang tidak ditemukan." };
 
-  const parsed = updateBarangSchema.safeParse(readBarangFormFields(formData));
+  const parsed = barangBaseFieldsSchema.safeParse(readBarangFormFields(formData));
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Data tidak valid." };
   }
-
   const data = parsed.data;
-
-  // Mode terkunci setelah barang dibuat — apapun yang dikirim form diabaikan,
-  // mode selalu ikut data existing di database.
-  if (existing.modePelacakan === "batch" && data.jumlahBaik + data.jumlahRusakRingan + data.jumlahRusakBerat !== data.jumlahUnit) {
-    return { error: "Jumlah Baik + Rusak Ringan + Rusak Berat harus sama dengan Jumlah Unit." };
-  }
-
-  if (data.subLokasiId) {
-    const [sub] = await db.select().from(subLokasi).where(eq(subLokasi.id, data.subLokasiId)).limit(1);
-    if (!sub || sub.ruangId !== data.ruangId) {
-      return { error: "Sub-lokasi tidak sesuai dengan Ruang yang dipilih." };
-    }
-  }
 
   const photoFiles = readPhotoFiles(formData);
   const photoError = validatePhotoFiles(photoFiles);
   if (photoError) return { error: photoError };
 
   const actorId = session.user.id;
+  const commonSet = {
+    nama: data.nama,
+    merkTipe: data.merkTipe || null,
+    kode: data.kode,
+    kategori: data.kategori || null,
+    spesifikasi: data.spesifikasi || null,
+    tanggalMasuk: data.tanggalMasuk,
+    sumberDana: data.sumberDana,
+    sumberDanaLainnya: data.sumberDana === "lainnya" ? data.sumberDanaLainnya || null : null,
+    periodeDana: data.periodeDana || null,
+    nominalDana: data.nominalDana ?? null,
+    updatedBy: actorId,
+    updatedAt: new Date(),
+  };
 
-  try {
-    await db
-      .update(barang)
-      .set({
-        nama: data.nama,
-        merkTipe: data.merkTipe || null,
-        kode: data.kode,
-        kategori: data.kategori || null,
-        spesifikasi: data.spesifikasi || null,
-        ruangId: data.ruangId,
-        subLokasiId: data.subLokasiId ?? null,
-        tanggalMasuk: data.tanggalMasuk,
-        sumberDana: data.sumberDana,
-        sumberDanaLainnya: data.sumberDana === "lainnya" ? data.sumberDanaLainnya || null : null,
-        periodeDana: data.periodeDana || null,
-        nominalDana: data.nominalDana ?? null,
-        // Breakdown mode "unit" dikelola lewat barang_unit (Issue 15/17), bukan
-        // form ini — nilai existing di database dipertahankan apa adanya.
-        ...(existing.modePelacakan === "batch"
-          ? {
-              jumlahUnit: data.jumlahUnit,
-              jumlahBaik: data.jumlahBaik,
-              jumlahRusakRingan: data.jumlahRusakRingan,
-              jumlahRusakBerat: data.jumlahRusakBerat,
-            }
-          : {}),
-        updatedBy: actorId,
-        updatedAt: new Date(),
-      })
-      .where(eq(barang.id, id));
-  } catch (error) {
-    const cause = error instanceof Error ? error.cause : undefined;
-    if ((cause as { code?: string } | undefined)?.code === "23505") {
-      return { error: "Kode / No. Seri sudah dipakai barang lain." };
+  // Mode terkunci setelah barang dibuat — apapun yang dikirim form diabaikan,
+  // mode selalu ikut data existing di database.
+  if (existing.modePelacakan === "unit") {
+    const unitParsed = unitModeLocationSchema.pick({ ruangId: true, subLokasiId: true }).safeParse({
+      ruangId: formData.get("ruangId") || undefined,
+      subLokasiId: formData.get("subLokasiId") || undefined,
+    });
+    if (!unitParsed.success) {
+      return { error: unitParsed.error.issues[0]?.message ?? "Data tidak valid." };
     }
-    throw error;
+
+    if (unitParsed.data.subLokasiId) {
+      const [sub] = await db.select().from(subLokasi).where(eq(subLokasi.id, unitParsed.data.subLokasiId)).limit(1);
+      if (!sub || sub.ruangId !== unitParsed.data.ruangId) {
+        return { error: "Sub-lokasi tidak sesuai dengan Ruang yang dipilih." };
+      }
+    }
+
+    const result = await runOrDuplicateKodeError(() =>
+      db
+        .update(barang)
+        .set({
+          ...commonSet,
+          ruangId: unitParsed.data.ruangId,
+          subLokasiId: unitParsed.data.subLokasiId ?? null,
+        })
+        .where(eq(barang.id, id)),
+    );
+    if (!result.ok) return { error: result.error };
+  } else {
+    const lokasiParsed = parseLokasiBaris(formData);
+    if ("error" in lokasiParsed) return { error: lokasiParsed.error };
+    const subLokasiError = await validateLokasiBarisSubLokasi(lokasiParsed.data);
+    if (subLokasiError) return { error: subLokasiError };
+
+    const result = await runOrDuplicateKodeError(() =>
+      db.transaction(async (tx) => {
+        await tx.update(barang).set(commonSet).where(eq(barang.id, id));
+        await tx.delete(barangLokasi).where(eq(barangLokasi.barangId, id));
+        await tx.insert(barangLokasi).values(
+          lokasiParsed.data.map((row, i) => ({
+            barangId: id,
+            ruangId: row.ruangId,
+            subLokasiId: row.subLokasiId,
+            urutan: i,
+            jumlah: row.jumlah,
+            jumlahBaik: row.jumlahBaik,
+            jumlahRusakRingan: row.jumlahRusakRingan,
+            jumlahRusakBerat: row.jumlahRusakBerat,
+            createdBy: actorId,
+            updatedBy: actorId,
+          })),
+        );
+        await syncBarangBreakdownFromLokasi(id, tx);
+      }),
+    );
+    if (!result.ok) return { error: result.error };
   }
 
-  for (const file of photoFiles) {
-    const result = await saveUploadedImage(file, "barang");
-    if (result.ok) {
-      await db.insert(barangFoto).values({ barangId: id, path: result.url });
-    }
-  }
+  await savePhotos(id, photoFiles);
 
   revalidatePath("/barang");
   revalidatePath(`/barang/${id}`);

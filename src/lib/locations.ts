@@ -1,10 +1,10 @@
 import { eq, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { barang } from "@/db/schema";
+import { barang, barangLokasi, barangUnit } from "@/db/schema";
 import type { GedungNode } from "@/components/lokasi/location-explorer";
 
 export async function getLocationTree(): Promise<GedungNode[]> {
-  const [tree, ruangAgregat] = await Promise.all([
+  const [tree, batchAgregat, unitAgregat] = await Promise.all([
     db.query.gedung.findMany({
       orderBy: (table, { asc }) => asc(table.createdAt),
       with: {
@@ -23,18 +23,42 @@ export async function getLocationTree(): Promise<GedungNode[]> {
         },
       },
     }),
+    // Barang mode batch: sebar per lokasi lewat barang_lokasi — bukan cuma
+    // ruangId "utama" di barang, supaya barang yang sebagian ada di ruang
+    // ini tetap terhitung di ruang itu.
     db
       .select({
-        ruangId: barang.ruangId,
-        totalUnit: sql<number>`coalesce(sum(${barang.jumlahUnit}), 0)::int`,
-        jenisBarang: sql<number>`count(*)::int`,
+        ruangId: barangLokasi.ruangId,
+        totalUnit: sql<number>`coalesce(sum(${barangLokasi.jumlah}), 0)::int`,
+        jenisBarang: sql<number>`count(distinct ${barangLokasi.barangId})::int`,
       })
-      .from(barang)
+      .from(barangLokasi)
+      .innerJoin(barang, eq(barangLokasi.barangId, barang.id))
       .where(eq(barang.isArchived, false))
-      .groupBy(barang.ruangId),
+      .groupBy(barangLokasi.ruangId),
+    // Barang mode unit: tiap unit fisik punya ruangId sendiri di barang_unit
+    // (bisa pindah dari lokasi awal barang-nya) — hitung dari situ, bukan
+    // dari ruangId barang induk yang cuma lokasi awal.
+    db
+      .select({
+        ruangId: barangUnit.ruangId,
+        totalUnit: sql<number>`count(*) filter (where ${barangUnit.kondisi} != 'diganti')::int`,
+        jenisBarang: sql<number>`count(distinct ${barangUnit.barangId})::int`,
+      })
+      .from(barangUnit)
+      .innerJoin(barang, eq(barangUnit.barangId, barang.id))
+      .where(eq(barang.isArchived, false))
+      .groupBy(barangUnit.ruangId),
   ]);
 
-  const agregatMap = new Map(ruangAgregat.map((row) => [row.ruangId, row]));
+  const agregatMap = new Map<string, { totalUnit: number; jenisBarang: number }>();
+  for (const row of [...batchAgregat, ...unitAgregat]) {
+    const prev = agregatMap.get(row.ruangId) ?? { totalUnit: 0, jenisBarang: 0 };
+    agregatMap.set(row.ruangId, {
+      totalUnit: prev.totalUnit + row.totalUnit,
+      jenisBarang: prev.jenisBarang + row.jenisBarang,
+    });
+  }
 
   return tree.map((g) => ({
     ...g,

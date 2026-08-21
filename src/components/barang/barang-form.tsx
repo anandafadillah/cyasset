@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Info, X } from "@phosphor-icons/react";
+import { Check, Info, Plus, Trash, X } from "@phosphor-icons/react";
 import { createBarangAction, deleteBarangFotoAction, updateBarangAction } from "@/app/(app)/barang/actions";
 import type { GedungNode } from "@/components/lokasi/location-explorer";
 import { LocationCascadeFields, type LocationCascadeInitial } from "@/components/barang/location-cascade-fields";
@@ -26,8 +26,33 @@ export type BarangFormInitial = {
   periodeDana: string | null;
   nominalDana: number | null;
   lokasi: LocationCascadeInitial;
+  lokasiList: {
+    ruangId: string;
+    subLokasiId: string;
+    jumlah: number;
+    jumlahBaik: number;
+    jumlahRusakRingan: number;
+    jumlahRusakBerat: number;
+  }[];
   existingPhotos: { id: string; path: string }[];
 };
+
+type LokasiBarisState = {
+  key: string;
+  initial?: LocationCascadeInitial;
+  jumlah: number;
+  baik: number;
+  rusakRingan: number;
+  rusakBerat: number;
+};
+
+// Cuma dipakai sebagai React key baris lokasi (bukan state/data), jadi aman
+// sebagai counter modul biasa — tidak perlu useRef.
+let barisKeyCounter = 0;
+function nextBarisKey() {
+  barisKeyCounter += 1;
+  return `baris-${barisKeyCounter}`;
+}
 
 const sumberDanaOptions = [
   { value: "ssg", label: "SSG (Sekolah Swasta Gratis)" },
@@ -57,12 +82,32 @@ export function BarangForm({
   const isUnitMode = modePelacakan === "unit";
 
   const [jumlahUnit, setJumlahUnit] = useState(initialData?.jumlahUnit ?? 0);
-  const [jumlahBaik, setJumlahBaik] = useState(initialData?.jumlahBaik ?? 0);
-  const [jumlahRusakRingan, setJumlahRusakRingan] = useState(initialData?.jumlahRusakRingan ?? 0);
-  const [jumlahRusakBerat, setJumlahRusakBerat] = useState(initialData?.jumlahRusakBerat ?? 0);
 
-  const totalKondisi = jumlahBaik + jumlahRusakRingan + jumlahRusakBerat;
-  const totalCocok = useMemo(() => jumlahUnit > 0 && totalKondisi === jumlahUnit, [jumlahUnit, totalKondisi]);
+  const [lokasiBaris, setLokasiBaris] = useState<LokasiBarisState[]>(() => {
+    if (initialData && initialData.lokasiList.length > 0) {
+      return initialData.lokasiList.map((row) => ({
+        key: nextBarisKey(),
+        initial: { ruangId: row.ruangId, subLokasiId: row.subLokasiId },
+        jumlah: row.jumlah,
+        baik: row.jumlahBaik,
+        rusakRingan: row.jumlahRusakRingan,
+        rusakBerat: row.jumlahRusakBerat,
+      }));
+    }
+    return [{ key: nextBarisKey(), jumlah: 0, baik: 0, rusakRingan: 0, rusakBerat: 0 }];
+  });
+
+  function addBaris() {
+    setLokasiBaris((prev) => [...prev, { key: nextBarisKey(), jumlah: 0, baik: 0, rusakRingan: 0, rusakBerat: 0 }]);
+  }
+  function removeBaris(key: string) {
+    setLokasiBaris((prev) => (prev.length <= 1 ? prev : prev.filter((row) => row.key !== key)));
+  }
+  function updateBaris(key: string, field: "jumlah" | "baik" | "rusakRingan" | "rusakBerat", value: number) {
+    setLokasiBaris((prev) => prev.map((row) => (row.key === key ? { ...row, [field]: value } : row)));
+  }
+
+  const totalJumlahBaris = useMemo(() => lokasiBaris.reduce((sum, row) => sum + row.jumlah, 0), [lokasiBaris]);
 
   const [sumberDana, setSumberDana] = useState(initialData?.sumberDana ?? "ssg");
 
@@ -221,82 +266,71 @@ export function BarangForm({
           )}
         </Panel>
 
-        <Panel title="Lokasi" subtitle="(Gedung → Lantai → Ruang → Sub-lokasi)">
-          <LocationCascadeFields gedungList={gedungList} initial={initialData?.lokasi} />
-          {isUnitMode && (
-            <p className="mt-3 flex items-center gap-1.5 text-[11px] text-dim">
-              <Info size={13} />
-              Lokasi ini jadi lokasi awal tiap unit — bisa diubah per unit belakangan di halaman Detail Barang.
-            </p>
-          )}
-        </Panel>
-
         {isUnitMode ? (
-          isEdit ? (
-            <>
-              <input type="hidden" name="jumlahUnit" value={initialData.jumlahUnit} />
-              <input type="hidden" name="jumlahBaik" value={initialData.jumlahBaik} />
-              <input type="hidden" name="jumlahRusakRingan" value={initialData.jumlahRusakRingan} />
-              <input type="hidden" name="jumlahRusakBerat" value={initialData.jumlahRusakBerat} />
-            </>
-          ) : (
-            <Panel title="Jumlah Unit Awal">
-              <NumberField
-                label="Jumlah Unit"
-                name="jumlahUnit"
-                value={jumlahUnit}
-                onChange={setJumlahUnit}
-                className="max-w-40 font-semibold"
-              />
+          <>
+            <Panel title="Lokasi" subtitle="(Gedung → Lantai → Ruang → Sub-lokasi)">
+              <LocationCascadeFields gedungList={gedungList} initial={initialData?.lokasi} />
               <p className="mt-3 flex items-center gap-1.5 text-[11px] text-dim">
                 <Info size={13} />
-                Sistem akan membuat {jumlahUnit || 0} baris unit fisik otomatis, semuanya berkondisi Baik. Kondisi
-                tiap unit bisa diubah belakangan di halaman Detail Barang.
+                Lokasi ini jadi lokasi awal tiap unit — bisa diubah per unit belakangan di halaman Detail Barang.
               </p>
             </Panel>
-          )
+
+            {isEdit ? (
+              <>
+                <input type="hidden" name="jumlahUnit" value={initialData.jumlahUnit} />
+                <input type="hidden" name="jumlahBaik" value={initialData.jumlahBaik} />
+                <input type="hidden" name="jumlahRusakRingan" value={initialData.jumlahRusakRingan} />
+                <input type="hidden" name="jumlahRusakBerat" value={initialData.jumlahRusakBerat} />
+              </>
+            ) : (
+              <Panel title="Jumlah Unit Awal">
+                <NumberField
+                  label="Jumlah Unit"
+                  name="jumlahUnit"
+                  value={jumlahUnit}
+                  onChange={setJumlahUnit}
+                  className="max-w-40 font-semibold"
+                />
+                <p className="mt-3 flex items-center gap-1.5 text-[11px] text-dim">
+                  <Info size={13} />
+                  Sistem akan membuat {jumlahUnit || 0} baris unit fisik otomatis, semuanya berkondisi Baik. Kondisi
+                  tiap unit bisa diubah belakangan di halaman Detail Barang.
+                </p>
+              </Panel>
+            )}
+          </>
         ) : (
           <Panel
-            title="Jumlah & Kondisi"
+            title="Lokasi & Kondisi"
+            subtitle="(barang batch bisa tersebar di lebih dari satu ruang)"
             headerExtra={
-              <span
-                className={`ml-auto inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
-                  totalCocok ? "bg-good-soft text-good" : "bg-warn-soft text-warn"
-                }`}
-              >
-                {totalCocok && <Check size={13} />}
-                Total {totalCocok ? "cocok" : "belum cocok"}: {totalKondisi} {totalCocok ? "=" : "≠"} {jumlahUnit}
+              <span className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-surface-3 px-2.5 py-1 text-xs font-medium text-muted">
+                Total: {totalJumlahBaris} unit
               </span>
             }
           >
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <NumberField
-                label="Jumlah Unit"
-                name="jumlahUnit"
-                value={jumlahUnit}
-                onChange={setJumlahUnit}
-                className="font-semibold"
-              />
-              <NumberField label="Baik" name="jumlahBaik" value={jumlahBaik} onChange={setJumlahBaik} tone="good" />
-              <NumberField
-                label="Rusak Ringan"
-                name="jumlahRusakRingan"
-                value={jumlahRusakRingan}
-                onChange={setJumlahRusakRingan}
-                tone="warn"
-              />
-              <NumberField
-                label="Rusak Berat"
-                name="jumlahRusakBerat"
-                value={jumlahRusakBerat}
-                onChange={setJumlahRusakBerat}
-                tone="danger"
-              />
+            <div className="flex flex-col gap-3">
+              {lokasiBaris.map((row, index) => (
+                <LokasiBarisField
+                  key={row.key}
+                  index={index}
+                  gedungList={gedungList}
+                  row={row}
+                  canRemove={lokasiBaris.length > 1}
+                  onRemove={() => removeBaris(row.key)}
+                  onChange={(field, value) => updateBaris(row.key, field, value)}
+                />
+              ))}
             </div>
-            <p className="mt-3 flex items-center gap-1.5 text-[11px] text-dim">
-              <Info size={13} />
-              Jumlah Baik + Rusak Ringan + Rusak Berat harus sama dengan Jumlah Unit.
-            </p>
+            <button
+              type="button"
+              onClick={addBaris}
+              className="mt-3 flex items-center gap-2 rounded-lg border border-dashed border-border px-3 py-2 text-xs font-medium text-muted hover:border-accent hover:text-accent"
+            >
+              <Plus size={14} />
+              Tambah Lokasi
+            </button>
           </Panel>
         )}
       </div>
@@ -541,9 +575,92 @@ function ModeOption({
   );
 }
 
+function LokasiBarisField({
+  index,
+  gedungList,
+  row,
+  canRemove,
+  onRemove,
+  onChange,
+}: {
+  index: number;
+  gedungList: GedungNode[];
+  row: LokasiBarisState;
+  canRemove: boolean;
+  onRemove: () => void;
+  onChange: (field: "jumlah" | "baik" | "rusakRingan" | "rusakBerat", value: number) => void;
+}) {
+  const totalKondisi = row.baik + row.rusakRingan + row.rusakBerat;
+  const cocok = totalKondisi === row.jumlah;
+
+  return (
+    <div className="rounded-lg border border-border p-3.5">
+      <div className="mb-3 flex items-center justify-between">
+        <span className="text-xs font-medium text-muted">Lokasi {index + 1}</span>
+        <button
+          type="button"
+          onClick={onRemove}
+          disabled={!canRemove}
+          title={canRemove ? "Hapus lokasi ini" : "Minimal 1 lokasi"}
+          className="grid size-6 place-items-center rounded-md text-dim hover:bg-danger-soft hover:text-danger disabled:pointer-events-none disabled:opacity-30"
+        >
+          <Trash size={14} />
+        </button>
+      </div>
+      <LocationCascadeFields
+        gedungList={gedungList}
+        initial={row.initial}
+        ruangIdName="lokasiRuangId"
+        subLokasiIdName="lokasiSubLokasiId"
+      />
+      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <NumberField
+          label="Jumlah"
+          name="lokasiJumlah"
+          id={`${row.key}-jumlah`}
+          value={row.jumlah}
+          onChange={(value) => onChange("jumlah", value)}
+          className="font-semibold"
+        />
+        <NumberField
+          label="Baik"
+          name="lokasiBaik"
+          id={`${row.key}-baik`}
+          value={row.baik}
+          onChange={(value) => onChange("baik", value)}
+          tone="good"
+        />
+        <NumberField
+          label="Rusak Ringan"
+          name="lokasiRusakRingan"
+          id={`${row.key}-rr`}
+          value={row.rusakRingan}
+          onChange={(value) => onChange("rusakRingan", value)}
+          tone="warn"
+        />
+        <NumberField
+          label="Rusak Berat"
+          name="lokasiRusakBerat"
+          id={`${row.key}-rb`}
+          value={row.rusakBerat}
+          onChange={(value) => onChange("rusakBerat", value)}
+          tone="danger"
+        />
+      </div>
+      {!cocok && (
+        <p className="mt-2 flex items-center gap-1.5 text-[11px] text-warn">
+          <Info size={13} />
+          Baik + Rusak Ringan + Rusak Berat ({totalKondisi}) harus sama dengan Jumlah ({row.jumlah}).
+        </p>
+      )}
+    </div>
+  );
+}
+
 function NumberField({
   label,
   name,
+  id,
   value,
   onChange,
   tone,
@@ -551,6 +668,7 @@ function NumberField({
 }: {
   label: string;
   name: string;
+  id?: string;
   value: number;
   onChange: (value: number) => void;
   tone?: "good" | "warn" | "danger";
@@ -559,11 +677,11 @@ function NumberField({
   const toneClass = tone === "good" ? "text-good" : tone === "warn" ? "text-warn" : tone === "danger" ? "text-danger" : "text-muted";
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={name} className={`text-xs font-medium ${toneClass}`}>
+      <label htmlFor={id ?? name} className={`text-xs font-medium ${toneClass}`}>
         {label}
       </label>
       <input
-        id={name}
+        id={id ?? name}
         name={name}
         type="number"
         min={0}

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { and, asc, eq, gt, gte, ilike, lte, or, sql } from "drizzle-orm";
+import { and, asc, eq, gt, gte, ilike, inArray, lte, or, sql } from "drizzle-orm";
 import { DesktopTower, DownloadSimple, Plus } from "@phosphor-icons/react/dist/ssr";
 import { Topbar } from "@/components/layout/topbar";
 import { ConditionBar } from "@/components/barang/condition-bar";
@@ -11,7 +11,7 @@ import { getLocationTree } from "@/lib/locations";
 import { formatTanggalPendek } from "@/lib/prasarana-format";
 import { getDipinjamMap } from "@/lib/stok";
 import { db } from "@/db";
-import { barang } from "@/db/schema";
+import { barang, barangLokasi } from "@/db/schema";
 
 const PAGE_SIZE = 10;
 
@@ -44,7 +44,16 @@ export default async function BarangPage({
     );
   }
   if (kategori) conditions.push(eq(barang.kategori, kategori));
-  if (lokasi) conditions.push(eq(barang.ruangId, lokasi));
+  if (lokasi) {
+    // barang.ruangId cuma lokasi "utama" (baris pertama) untuk barang batch
+    // multi-lokasi — cocokkan juga barang_lokasi supaya barang yang cuma
+    // punya SEBAGIAN di ruang ini tetap ketemu saat difilter per ruang.
+    const barangDiRuangIni = db
+      .select({ barangId: barangLokasi.barangId })
+      .from(barangLokasi)
+      .where(eq(barangLokasi.ruangId, lokasi));
+    conditions.push(or(eq(barang.ruangId, lokasi), inArray(barang.id, barangDiRuangIni))!);
+  }
   if (kondisi === "rusak-ringan") conditions.push(gt(barang.jumlahRusakRingan, 0));
   if (kondisi === "rusak-berat") conditions.push(gt(barang.jumlahRusakBerat, 0));
   if (kondisi === "baik-semua") conditions.push(sql`${barang.jumlahBaik} = ${barang.jumlahUnit}`);
@@ -73,7 +82,7 @@ export default async function BarangPage({
       },
       limit: PAGE_SIZE,
       offset: (page - 1) * PAGE_SIZE,
-      with: { ruang: { with: { lantai: { with: { gedung: true } } } }, subLokasi: true },
+      with: { ruang: { with: { lantai: { with: { gedung: true } } } }, subLokasi: true, lokasi: true },
     }),
     db.select({ total: sql<number>`count(*)::int` }).from(barang).where(where),
     db
@@ -204,8 +213,16 @@ export default async function BarangPage({
                         )}
                       </td>
                       <td className="py-3 text-text">
-                        {lokasiLabel}
-                        <div className="text-[11px] text-dim">{gedungLantai}</div>
+                        {row.lokasi.length > 1 ? (
+                          <span className="rounded-full bg-accent-soft px-2.5 py-1 text-xs font-medium text-accent">
+                            {row.lokasi.length} lokasi
+                          </span>
+                        ) : (
+                          <>
+                            {lokasiLabel}
+                            <div className="text-[11px] text-dim">{gedungLantai}</div>
+                          </>
+                        )}
                       </td>
                       <td className="py-3 text-text">{row.jumlahUnit}</td>
                       <td className="py-3">

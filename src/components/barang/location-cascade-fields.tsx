@@ -25,9 +25,14 @@ function resolveInitialPath(gedungList: GedungNode[], ruangId: string) {
 export function LocationCascadeFields({
   gedungList,
   initial,
+  ruangIdName = "ruangId",
+  subLokasiIdName = "subLokasiId",
 }: {
   gedungList: GedungNode[];
   initial?: LocationCascadeInitial;
+  /** Nama field hidden input untuk ruangId — dibuat beda-beda per baris di form Lokasi & Kondisi mode Batch, karena FormData butuh nama field yang sama untuk dianggap satu daftar berulang. */
+  ruangIdName?: string;
+  subLokasiIdName?: string;
 }) {
   const resolved = resolveInitialPath(gedungList, initial?.ruangId ?? "");
   const [gedungId, setGedungId] = useState(resolved.gedungId);
@@ -84,8 +89,8 @@ export function LocationCascadeFields({
         disabled={!ruangId}
         onChange={setSubLokasiId}
       />
-      <input type="hidden" name="ruangId" value={ruangId} />
-      <input type="hidden" name="subLokasiId" value={subLokasiId} />
+      <input type="hidden" name={ruangIdName} value={ruangId} />
+      <input type="hidden" name={subLokasiIdName} value={subLokasiId} />
     </div>
   );
 }

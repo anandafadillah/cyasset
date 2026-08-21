@@ -167,6 +167,37 @@ export const barangFoto = pgTable("barang_foto", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+// Breakdown lokasi barang bermode "batch" — satu jenis barang batch (mis.
+// "Kursi Kelas") bisa tersebar di banyak ruang sekaligus, tiap ruang punya
+// jumlah & kondisinya sendiri. barang.ruangId/subLokasiId/jumlahUnit/dst
+// (kolom di atas) dihitung otomatis dari SUM baris-baris ini — ruangId/
+// subLokasiId ikut baris pertama, jumlah* ikut totalnya — persis pola yang
+// sama dengan cara barang_unit men-drive breakdown barang bermode "unit"
+// (lihat syncBarangBreakdownFromUnits). Barang bermode "unit" TIDAK memakai
+// tabel ini — lokasi per unit tetap di barang_unit seperti biasa.
+export const barangLokasi = pgTable("barang_lokasi", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  barangId: uuid("barang_id")
+    .notNull()
+    .references(() => barang.id, { onDelete: "cascade" }),
+  ruangId: uuid("ruang_id")
+    .notNull()
+    .references(() => ruang.id, { onDelete: "restrict" }),
+  subLokasiId: uuid("sub_lokasi_id").references(() => subLokasi.id, { onDelete: "set null" }),
+  // Urutan baris di form (0, 1, 2, ...) — dipakai untuk menentukan baris
+  // "pertama" (jadi ruangId/subLokasiId utama di barang) secara deterministik,
+  // karena baris-baris ini di-replace-all tiap simpan (lihat actions.ts) dan
+  // created_at-nya bisa sama persis kalau insert-nya satu statement.
+  urutan: integer("urutan").notNull().default(0),
+  jumlah: integer("jumlah").notNull(),
+  jumlahBaik: integer("jumlah_baik").notNull(),
+  jumlahRusakRingan: integer("jumlah_rusak_ringan").notNull(),
+  jumlahRusakBerat: integer("jumlah_rusak_berat").notNull(),
+  ...auditColumns,
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 // Unit fisik individual milik barang bermode "unit" — lihat catatan di atas.
 export const barangUnit = pgTable("barang_unit", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -200,10 +231,17 @@ export const barangRelations = relations(barang, ({ one, many }) => ({
   subLokasi: one(subLokasi, { fields: [barang.subLokasiId], references: [subLokasi.id] }),
   foto: many(barangFoto),
   units: many(barangUnit),
+  lokasi: many(barangLokasi),
 }));
 
 export const barangFotoRelations = relations(barangFoto, ({ one }) => ({
   barang: one(barang, { fields: [barangFoto.barangId], references: [barang.id] }),
+}));
+
+export const barangLokasiRelations = relations(barangLokasi, ({ one }) => ({
+  barang: one(barang, { fields: [barangLokasi.barangId], references: [barang.id] }),
+  ruang: one(ruang, { fields: [barangLokasi.ruangId], references: [ruang.id] }),
+  subLokasi: one(subLokasi, { fields: [barangLokasi.subLokasiId], references: [subLokasi.id] }),
 }));
 
 export const barangUnitRelations = relations(barangUnit, ({ one, many }) => ({
@@ -219,6 +257,8 @@ export const barangUnitFotoRelations = relations(barangUnitFoto, ({ one }) => ({
 
 export type Barang = typeof barang.$inferSelect;
 export type NewBarang = typeof barang.$inferInsert;
+export type BarangLokasi = typeof barangLokasi.$inferSelect;
+export type NewBarangLokasi = typeof barangLokasi.$inferInsert;
 export type BarangFoto = typeof barangFoto.$inferSelect;
 export type BarangUnit = typeof barangUnit.$inferSelect;
 export type NewBarangUnit = typeof barangUnit.$inferInsert;

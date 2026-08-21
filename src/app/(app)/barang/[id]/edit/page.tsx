@@ -11,7 +11,10 @@ export default async function EditBarangPage({ params }: { params: Promise<{ id:
   const { id } = await params;
 
   const [item, gedungList] = await Promise.all([
-    db.query.barang.findFirst({ where: eq(barang.id, id), with: { foto: true } }),
+    db.query.barang.findFirst({
+      where: eq(barang.id, id),
+      with: { foto: true, lokasi: { orderBy: (table, { asc }) => asc(table.urutan) } },
+    }),
     getLocationTree(),
   ]);
 
@@ -38,6 +41,14 @@ export default async function EditBarangPage({ params }: { params: Promise<{ id:
       ruangId: item.ruangId,
       subLokasiId: item.subLokasiId ?? "",
     },
+    lokasiList: item.lokasi.map((row) => ({
+      ruangId: row.ruangId,
+      subLokasiId: row.subLokasiId ?? "",
+      jumlah: row.jumlah,
+      jumlahBaik: row.jumlahBaik,
+      jumlahRusakRingan: row.jumlahRusakRingan,
+      jumlahRusakBerat: row.jumlahRusakBerat,
+    })),
     existingPhotos: item.foto.map((foto) => ({ id: foto.id, path: foto.path })),
   };
 

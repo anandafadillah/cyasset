@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
-import { barang, ruang } from "@/db/schema";
+import { barang, barangLokasi, barangUnit, ruang } from "@/db/schema";
 import type { LirData } from "@/components/laporan/lir-pdf";
 import { renderLirPdf } from "@/lib/render-laporan-pdf";
 
@@ -26,25 +26,46 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Ruang tidak ditemukan." }, { status: 404 });
   }
 
-  const items = await db
-    .select()
-    .from(barang)
-    .where(and(eq(barang.ruangId, ruangId), eq(barang.isArchived, false)));
+  // Barang mode batch bisa tersebar di banyak ruang (barang_lokasi) — ambil
+  // cuma porsi yang benar-benar ada di ruang ini, bukan total keseluruhan
+  // barangnya. Barang mode unit juga sama: tiap unit fisik punya ruangId
+  // sendiri di barang_unit (bisa pindah dari lokasi awal barangnya).
+  const [batchItems, unitItems] = await Promise.all([
+    db
+      .select({
+        nama: barang.nama,
+        kode: barang.kode,
+        kategori: barang.kategori,
+        jumlahUnit: barangLokasi.jumlah,
+        jumlahBaik: barangLokasi.jumlahBaik,
+        jumlahRusakRingan: barangLokasi.jumlahRusakRingan,
+        jumlahRusakBerat: barangLokasi.jumlahRusakBerat,
+      })
+      .from(barangLokasi)
+      .innerJoin(barang, eq(barangLokasi.barangId, barang.id))
+      .where(and(eq(barangLokasi.ruangId, ruangId), eq(barang.isArchived, false))),
+    db
+      .select({
+        nama: barang.nama,
+        kode: barang.kode,
+        kategori: barang.kategori,
+        jumlahUnit: sql<number>`count(*) filter (where ${barangUnit.kondisi} != 'diganti')::int`,
+        jumlahBaik: sql<number>`count(*) filter (where ${barangUnit.kondisi} = 'baik')::int`,
+        jumlahRusakRingan: sql<number>`count(*) filter (where ${barangUnit.kondisi} = 'rusak_ringan')::int`,
+        jumlahRusakBerat: sql<number>`count(*) filter (where ${barangUnit.kondisi} = 'rusak_berat')::int`,
+      })
+      .from(barangUnit)
+      .innerJoin(barang, eq(barangUnit.barangId, barang.id))
+      .where(and(eq(barangUnit.ruangId, ruangId), eq(barang.isArchived, false)))
+      .groupBy(barangUnit.barangId, barang.nama, barang.kode, barang.kategori),
+  ]);
 
   const data: LirData = {
     ruangNama: ruangRow.nama,
     lantaiNama: ruangRow.lantai.nama,
     gedungNama: ruangRow.lantai.gedung.nama,
     tanggalCetak: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }),
-    items: items.map((item) => ({
-      nama: item.nama,
-      kode: item.kode,
-      kategori: item.kategori,
-      jumlahUnit: item.jumlahUnit,
-      jumlahBaik: item.jumlahBaik,
-      jumlahRusakRingan: item.jumlahRusakRingan,
-      jumlahRusakBerat: item.jumlahRusakBerat,
-    })),
+    items: [...batchItems, ...unitItems],
   };
 
   const buffer = await renderLirPdf(data);

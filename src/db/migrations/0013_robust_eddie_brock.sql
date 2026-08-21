@@ -1,0 +1,1 @@
+ALTER TABLE "barang_lokasi" ADD COLUMN "urutan" integer DEFAULT 0 NOT NULL;
