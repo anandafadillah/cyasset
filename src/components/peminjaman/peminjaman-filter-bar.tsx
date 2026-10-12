@@ -40,7 +40,7 @@ export function PeminjamanFilterBar({
   }, [q]);
 
   return (
-    <div className="flex items-center gap-1.5 border-b border-border">
+    <div className="flex flex-wrap items-center gap-1.5 border-b border-border">
       {tabs.map((tab) => {
         const active = activeTab === tab.value;
         const params = new URLSearchParams(searchParams.toString());
@@ -50,7 +50,8 @@ export function PeminjamanFilterBar({
           <a
             key={tab.value}
             href={`${pathname}?${params.toString()}`}
-            className={`mr-2 border-b-2 px-1 py-2.5 text-sm font-medium ${
+            aria-current={active ? "page" : undefined}
+            className={`mr-1 inline-flex min-h-11 shrink-0 items-center gap-1 border-b-2 px-1 py-2.5 text-sm font-medium sm:mr-2 ${
               active
                 ? tab.value === "terlambat"
                   ? "border-danger text-danger"
@@ -63,12 +64,13 @@ export function PeminjamanFilterBar({
         );
       })}
 
-      <div className="ml-auto mb-2 flex w-60 items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm">
+      <div className="mb-2 flex w-full items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm md:ml-auto md:w-60">
         <MagnifyingGlass size={15} className="text-dim" />
         <input
           value={q}
           onChange={(event) => setQ(event.target.value)}
           placeholder="Cari peminjam / barang…"
+          aria-label="Cari peminjam atau barang"
           className="w-full bg-transparent text-text outline-none placeholder:text-dim"
         />
       </div>

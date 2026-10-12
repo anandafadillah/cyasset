@@ -49,8 +49,8 @@ export function BarangHistoryTabs({
   const [tab, setTab] = useState<"peminjaman" | "kerusakan">("peminjaman");
 
   return (
-    <div className="rounded-xl border border-border bg-surface">
-      <div className="flex items-center gap-5 border-b border-border px-4.5">
+    <div className="responsive-table-panel rounded-xl border border-border bg-surface">
+      <div className="flex flex-wrap items-center gap-3 border-b border-border px-4.5 sm:gap-5">
         <button
           type="button"
           onClick={() => setTab("peminjaman")}
@@ -73,7 +73,7 @@ export function BarangHistoryTabs({
 
       {tab === "peminjaman" ? (
         <div className="overflow-x-auto">
-          <table className="w-full text-[13px]">
+          <table className="data-table w-full text-[13px]">
             <thead>
               <tr className="text-left text-xs text-dim">
                 <th className="py-2.5 pl-4.5 font-medium">Peminjam</th>
@@ -96,16 +96,16 @@ export function BarangHistoryTabs({
                 const status = statusPeminjamanLabel[row.status] ?? statusPeminjamanLabel.dipinjam;
                 return (
                   <tr key={row.id} className="border-t border-border">
-                    <td className="py-2.5 pl-4.5 text-text">{row.peminjamNama}</td>
-                    <td className="py-2.5">
+                    <td data-label="Peminjam" className="py-2.5 pl-4.5 text-text">{row.peminjamNama}</td>
+                    <td data-label="Jenis" className="py-2.5">
                       <span className="rounded-full bg-surface-3 px-2 py-0.5 text-xs text-muted">
                         {row.jenis === "eksternal" ? "Eksternal" : "Internal"}
                       </span>
                     </td>
-                    <td className="py-2.5 text-text">{row.unitSubKode ? `Unit ${row.unitSubKode}` : row.jumlah}</td>
-                    <td className="py-2.5 text-text">{formatTanggal(row.tanggalPinjam)}</td>
-                    <td className="py-2.5 text-text">{formatTanggal(row.tanggalRencanaKembali)}</td>
-                    <td className="py-2.5 pr-4.5">
+                    <td data-label="Jumlah / Unit" className="py-2.5 text-text">{row.unitSubKode ? `Unit ${row.unitSubKode}` : row.jumlah}</td>
+                    <td data-label="Pinjam" className="py-2.5 text-text">{formatTanggal(row.tanggalPinjam)}</td>
+                    <td data-label="Rencana Kembali" className="py-2.5 text-text">{formatTanggal(row.tanggalRencanaKembali)}</td>
+                    <td data-label="Status" className="py-2.5 pr-4.5">
                       <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${status.className}`}>
                         {status.label}
                       </span>
@@ -118,7 +118,7 @@ export function BarangHistoryTabs({
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-[13px]">
+          <table className="data-table w-full text-[13px]">
             <thead>
               <tr className="text-left text-xs text-dim">
                 <th className="py-2.5 pl-4.5 font-medium">Tiket</th>
@@ -140,14 +140,14 @@ export function BarangHistoryTabs({
                 const status = statusKerusakanLabel[row.status] ?? statusKerusakanLabel.masuk;
                 return (
                   <tr key={row.id} className="border-t border-border">
-                    <td className="py-2.5 pl-4.5 font-mono text-xs text-muted">#{row.kodeTiket}</td>
-                    <td className="max-w-70 truncate py-2.5 text-text">{row.deskripsi}</td>
-                    <td className="py-2.5 text-text">
+                    <td data-label="Tiket" className="py-2.5 pl-4.5 font-mono text-xs text-muted">#{row.kodeTiket}</td>
+                    <td data-label="Deskripsi" className="max-w-70 truncate py-2.5 text-text">{row.deskripsi}</td>
+                    <td data-label="Unit Terdampak" className="py-2.5 text-text">
                       {row.jumlahUnitTerdampak} ·{" "}
                       {row.tingkatKerusakan === "rusak_ringan" ? "Rusak Ringan" : "Rusak Berat"}
                     </td>
-                    <td className="py-2.5 text-text">{formatTanggal(row.createdAt.slice(0, 10))}</td>
-                    <td className="py-2.5 pr-4.5">
+                    <td data-label="Tanggal" className="py-2.5 text-text">{formatTanggal(row.createdAt.slice(0, 10))}</td>
+                    <td data-label="Status" className="py-2.5 pr-4.5">
                       <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${status.className}`}>
                         {status.label}
                       </span>

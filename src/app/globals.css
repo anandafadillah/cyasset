@@ -72,6 +72,270 @@ body {
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
+::selection {
+  background: var(--color-accent-soft);
+  color: var(--color-text);
+}
+
+:where(button, a, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.cyasset-app main > * {
+  min-width: 0;
+}
+
+.cyasset-app {
+  overflow-wrap: anywhere;
+}
+
+.navigation-drawer aside {
+  padding-bottom: max(1.125rem, env(safe-area-inset-bottom));
+}
+
+@media (max-width: 1279px), (hover: none) and (pointer: coarse) {
+  :where(.cyasset-app, .cyasset-modal, .public-page, .login-page) :where(button, select, input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"])) {
+    min-height: 44px;
+  }
+  :where(.cyasset-app, .cyasset-modal, .public-page, .login-page) button {
+    min-width: 44px;
+  }
+  :where(.cyasset-app, .cyasset-modal, .public-page, .login-page) :where(input:not([type="hidden"]), select, textarea) {
+    min-width: 0;
+    max-width: 100%;
+    font-size: 16px;
+  }
+  .cyasset-app > header {
+    padding-top: calc(0.625rem + env(safe-area-inset-top));
+  }
+  .page-topbar {
+    height: auto;
+    min-height: 66px;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding-block: 0.75rem;
+  }
+  .page-topbar > div {
+    min-width: 0;
+  }
+  .page-topbar h2 {
+    overflow-wrap: anywhere;
+  }
+  .page-topbar > a {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+  }
+  .page-topbar > div:has(> a, > button) {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .page-topbar :where(a, button) {
+    min-height: 44px;
+    justify-content: center;
+  }
+  .cyasset-popover :where(button, a) {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .location-tree .group {
+    min-width: 0;
+    gap: 0.375rem;
+    padding-inline: 0.375rem;
+  }
+  .location-tree .group > button {
+    min-width: 0;
+    gap: 0.375rem;
+  }
+  .location-tree .group > button svg {
+    flex-shrink: 0;
+  }
+  .location-tree .group > span {
+    flex-shrink: 0;
+  }
+  .location-tree .group:has(> details) {
+    padding-left: 0.375rem;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .cyasset-app {
+    flex-direction: column;
+  }
+  .cyasset-app .desktop-navigation,
+  .cyasset-app .desktop-theme,
+  .location-desktop-actions {
+    display: none;
+  }
+  .cyasset-app > header {
+    display: flex;
+  }
+  .location-touch-actions {
+    display: block;
+  }
+  .photo-thumb {
+    width: 80px;
+    height: auto;
+  }
+  .photo-thumb img {
+    width: 100%;
+    height: 80px;
+  }
+  .photo-delete {
+    position: static;
+    width: 100%;
+    min-height: 44px;
+    border-radius: 0;
+    background: var(--color-surface-2);
+    color: var(--color-muted);
+    opacity: 1;
+  }
+}
+
+/* The same records and actions become readable cards on phones and narrow tablets. */
+@media (max-width: 1023px) {
+  .responsive-table-panel {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    overflow: visible;
+  }
+  .data-table {
+    display: block;
+    width: 100%;
+    font-size: 14px;
+  }
+  .data-table thead {
+    display: none;
+  }
+  .data-table tbody {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .data-table tbody > tr {
+    display: block;
+    min-width: 0;
+    padding: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-surface);
+  }
+  .data-table td {
+    display: grid;
+    grid-template-columns: minmax(80px, 32%) minmax(0, 1fr);
+    align-items: start;
+    column-gap: 0.75rem;
+    row-gap: 0.25rem;
+    width: auto;
+    max-width: none;
+    padding: 0.4rem 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: left;
+  }
+  .data-table td[data-label]::before {
+    content: attr(data-label);
+    grid-column: 1;
+    grid-row: 1;
+    padding-top: 0.125rem;
+    color: var(--color-muted);
+    font-family: var(--font-sans), sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+  }
+  .data-table td > * {
+    grid-column: 2;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .data-table td:first-child,
+  .data-table td[colspan] {
+    display: block;
+  }
+  .data-table td:first-child {
+    padding-top: 0;
+    padding-bottom: 0.75rem;
+  }
+  .data-table td:first-child::before,
+  .data-table td[data-label="Tindakan"]::before {
+    content: none;
+  }
+  .data-table td[data-label="Tindakan"] {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    padding-top: 0.75rem;
+    margin-top: 0.25rem;
+    border-top: 1px solid var(--color-border);
+  }
+  .data-table td[data-label="Tindakan"] > div {
+    flex-wrap: wrap;
+  }
+  .data-table td :where(a, button) {
+    min-height: 44px;
+  }
+  .data-table td .truncate {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+  .data-table td > .min-w-32 {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .page-topbar {
+    padding-inline: 1rem;
+  }
+  .page-topbar > div:has(> a, > button),
+  .topbar-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+  .form-actions {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-inline: -1rem;
+    margin-bottom: -1rem;
+    padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
+  }
+  .form-actions > div:first-child:empty,
+  .unit-edit-actions > div:first-child:empty {
+    display: none;
+  }
+  .form-actions > div:first-child:not(:empty),
+  .unit-edit-actions > div:first-child:not(:empty) {
+    flex-basis: 100%;
+    overflow-wrap: anywhere;
+  }
+  .form-actions > div:last-child,
+  .unit-edit-actions > div:last-child {
+    width: 100%;
+    margin-left: 0;
+  }
+  .form-actions button,
+  .unit-edit-actions button {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 767px) {
+  .form-actions {
+    margin-inline: -1.5rem;
+    margin-bottom: -1.5rem;
+    padding-inline: 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Cetak QR (Issue 18): sembunyikan chrome dashboard & elemen non-cetak saat
    window.print() dipanggil dari halaman /barang/[id]/cetak-qr atau
    /prasarana/[id]/cetak-qr, supaya hasil cetak cuma berisi label QR. */
@@ -92,6 +356,10 @@ body {
     height: auto;
     overflow: visible;
     display: block;
+  }
+  body:has(.qr-card-preview) main {
+    display: block;
+    overflow: visible;
   }
   .qr-print-content {
     display: block;

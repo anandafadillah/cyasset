@@ -69,12 +69,12 @@ export function PrasaranaForm({ initialData }: { initialData?: PrasaranaFormInit
       {isEdit && <input type="hidden" name="id" value={initialData.id} />}
       <div className="flex flex-col gap-4.5">
         <Panel title="Identitas Pekerjaan">
-          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
             <TextField
               label="Nama Pekerjaan"
               name="nama"
               required
-              className="sm:col-span-2"
+              className="md:col-span-2"
               placeholder="mis. Pembangunan Ruang Lab Komputer 2"
               defaultValue={initialData?.nama}
             />
@@ -92,7 +92,7 @@ export function PrasaranaForm({ initialData }: { initialData?: PrasaranaFormInit
               hint="(opsional)"
               defaultValue={initialData?.lokasi ?? undefined}
             />
-            <div className="sm:col-span-2">
+            <div className="md:col-span-2">
               <TextAreaField
                 label="Keterangan"
                 name="deskripsi"
@@ -104,7 +104,7 @@ export function PrasaranaForm({ initialData }: { initialData?: PrasaranaFormInit
         </Panel>
 
         <Panel title="Status & Waktu Pengerjaan">
-          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2 xl:grid-cols-3">
             <SelectField
               label="Status"
               name="status"
@@ -125,7 +125,7 @@ export function PrasaranaForm({ initialData }: { initialData?: PrasaranaFormInit
         </Panel>
 
         <Panel title="Sumber Dana">
-          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
             <SelectField
               label="Sumber Dana"
               name="sumberDana"
@@ -181,7 +181,7 @@ export function PrasaranaForm({ initialData }: { initialData?: PrasaranaFormInit
       </Panel>
       </div>
 
-      <div className="sticky bottom-0 -mx-6 -mb-6 mt-5.5 flex items-center gap-3 border-t border-border bg-surface px-6 py-4">
+      <div className="form-actions sticky bottom-0 -mx-6 -mb-6 mt-5.5 flex items-center gap-3 border-t border-border bg-surface px-6 py-4">
         <div aria-live="polite" className="text-sm text-danger">
           {error}
         </div>

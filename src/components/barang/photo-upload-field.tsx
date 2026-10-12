@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Image as ImageIcon, Plus, UploadSimple, X } from "@phosphor-icons/react";
 
 export function PhotoUploadField() {
@@ -68,14 +68,15 @@ export function PhotoUploadField() {
 
 function PhotoThumb({ file, onRemove }: { file: File; onRemove: () => void }) {
   const [url] = useState(() => URL.createObjectURL(file));
+  useEffect(() => () => URL.revokeObjectURL(url), [url]);
 
   return (
-    <div className="group relative size-14 flex-none overflow-hidden rounded-lg border border-border bg-surface-3">
+    <div className="photo-thumb group relative flex w-20 flex-none flex-col overflow-hidden rounded-lg border border-border bg-surface-3 xl:size-14">
       {url ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={url} alt={file.name} className="size-full object-cover" />
+        <img src={url} alt={file.name} className="aspect-square w-full object-cover xl:size-full" />
       ) : (
-        <div className="grid size-full place-items-center text-faint">
+        <div className="grid aspect-square w-full place-items-center text-faint">
           <ImageIcon size={18} />
         </div>
       )}
@@ -83,7 +84,8 @@ function PhotoThumb({ file, onRemove }: { file: File; onRemove: () => void }) {
         type="button"
         onClick={onRemove}
         title="Hapus foto"
-        className="absolute top-0.5 right-0.5 grid size-4.5 place-items-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100"
+        aria-label={`Hapus foto ${file.name}`}
+        className="photo-delete grid min-h-11 w-full place-items-center border-t border-border bg-surface-2 text-muted transition-opacity xl:absolute xl:top-0.5 xl:right-0.5 xl:size-4.5 xl:min-h-0 xl:rounded-full xl:bg-black/60 xl:text-white xl:opacity-0 group-focus-within:opacity-100 group-hover:opacity-100"
       >
         <X size={11} />
       </button>

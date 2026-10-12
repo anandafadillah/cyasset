@@ -59,7 +59,7 @@ export function PrasaranaFilterBar({
 
   return (
     <div className="flex flex-col gap-3.5">
-      <div className="flex items-center gap-1.5 border-b border-border">
+      <div className="flex flex-wrap items-center gap-1.5 border-b border-border">
         {tabs.map((tab) => {
           const active = activeTab === tab.value;
           const params = new URLSearchParams(searchParams.toString());
@@ -69,7 +69,8 @@ export function PrasaranaFilterBar({
             <a
               key={tab.value}
               href={`${pathname}?${params.toString()}`}
-              className={`mr-2 border-b-2 px-1 py-2.5 text-sm font-medium ${
+              aria-current={active ? "page" : undefined}
+              className={`mr-1 inline-flex min-h-11 shrink-0 items-center gap-1 border-b-2 px-1 py-2.5 text-sm font-medium sm:mr-2 ${
                 active ? "border-accent text-accent" : "border-transparent text-muted hover:text-text"
               }`}
             >
@@ -80,12 +81,13 @@ export function PrasaranaFilterBar({
       </div>
 
       <div className="flex flex-wrap items-center gap-2.5">
-        <div className="flex w-75 items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm">
+        <div className="flex w-full min-w-0 items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm md:w-75">
           <MagnifyingGlass size={16} className="text-dim" />
           <input
             value={q}
             onChange={(event) => setQ(event.target.value)}
             placeholder="Cari nama pekerjaan atau lokasi…"
+            aria-label="Cari pekerjaan atau lokasi"
             className="w-full bg-transparent text-text outline-none placeholder:text-dim"
           />
         </div>
@@ -133,21 +135,22 @@ function DateRangeFilter({
   onChangeSampai: (value: string) => void;
 }) {
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text">
-      {icon}
-      <span className="text-dim">{label}:</span>
+    <div className="grid w-full grid-cols-2 items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text lg:flex lg:w-auto">
+      <span className="col-span-2 flex items-center gap-2 text-muted">{icon}{label}:</span>
       <input
         type="date"
+        aria-label={`${label} dari`}
         value={dari}
         onChange={(event) => onChangeDari(event.target.value)}
-        className="bg-transparent outline-none"
+        className="min-w-0 w-full bg-transparent outline-none lg:w-36"
       />
-      <span className="text-dim">–</span>
+      <span className="hidden text-muted lg:inline">–</span>
       <input
         type="date"
+        aria-label={`${label} sampai`}
         value={sampai}
         onChange={(event) => onChangeSampai(event.target.value)}
-        className="bg-transparent outline-none"
+        className="min-w-0 w-full bg-transparent outline-none lg:w-36"
       />
     </div>
   );
@@ -165,12 +168,13 @@ function FilterSelect({
   options: { value: string; label: string }[];
 }) {
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text">
+    <div className="flex w-full min-w-0 items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text md:w-auto">
       {icon}
       <select
+        aria-label={options[0]?.label}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="bg-transparent outline-none"
+        className="min-w-0 w-full bg-transparent outline-none"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>

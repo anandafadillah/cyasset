@@ -148,12 +148,12 @@ export function BarangForm({
       {isEdit && <input type="hidden" name="id" value={initialData.id} />}
       <div className="flex flex-col gap-4.5">
         <Panel title="Identitas Barang">
-          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2 xl:grid-cols-3">
             <TextField
               label="Nama Barang"
               name="nama"
               required
-              className="sm:col-span-2"
+              className="md:col-span-2"
               defaultValue={initialData?.nama}
             />
             <TextField
@@ -170,7 +170,7 @@ export function BarangForm({
               hint="(manual, unik)"
               defaultValue={initialData?.kode}
             />
-            <div className="sm:col-span-3">
+            <div className="md:col-span-2 xl:col-span-3">
               <TextAreaField
                 label="Spesifikasi Teknis"
                 name="spesifikasi"
@@ -181,7 +181,7 @@ export function BarangForm({
         </Panel>
 
         <Panel title="Tanggal Masuk & Sumber Dana">
-          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
             <DateField
               label="Tanggal Masuk"
               name="tanggalMasuk"
@@ -245,7 +245,7 @@ export function BarangForm({
               )}
             </>
           ) : (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               <ModeOption
                 name="modePelacakan"
                 value="batch"
@@ -339,19 +339,20 @@ export function BarangForm({
         {isEdit && existingPhotos.length > 0 && (
           <div className="mb-3 flex flex-wrap gap-2">
             {existingPhotos.map((foto) => (
-              <div key={foto.id} className="group relative size-14 flex-none overflow-hidden rounded-lg border border-border bg-surface-3">
+              <div key={foto.id} className="photo-thumb group relative flex w-20 flex-none flex-col overflow-hidden rounded-lg border border-border bg-surface-3 xl:size-14">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={foto.path}
                   alt="Foto kondisi tersimpan"
-                  className={`size-full object-cover ${deletingPhotoId === foto.id ? "opacity-40" : ""}`}
+                  className={`aspect-square w-full object-cover xl:size-full ${deletingPhotoId === foto.id ? "opacity-40" : ""}`}
                 />
                 <button
                   type="button"
                   onClick={() => handleDeletePhoto(foto.id)}
                   disabled={deletingPhotoId === foto.id}
                   title="Hapus foto"
-                  className="absolute top-0.5 right-0.5 grid size-4.5 place-items-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100 disabled:opacity-100"
+                  aria-label="Hapus foto kondisi tersimpan"
+                  className="photo-delete grid min-h-11 w-full place-items-center border-t border-border bg-surface-2 text-muted transition-opacity xl:absolute xl:top-0.5 xl:right-0.5 xl:size-4.5 xl:min-h-0 xl:rounded-full xl:bg-black/60 xl:text-white xl:opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 disabled:opacity-100"
                 >
                   <X size={11} />
                 </button>
@@ -364,7 +365,7 @@ export function BarangForm({
       </Panel>
       </div>
 
-      <div className="sticky bottom-0 -mx-6 -mb-6 mt-5.5 flex items-center gap-3 border-t border-border bg-surface px-6 py-4">
+      <div className="form-actions sticky bottom-0 -mx-6 -mb-6 mt-5.5 flex items-center gap-3 border-t border-border bg-surface px-6 py-4">
         <div aria-live="polite" className="text-sm text-danger">
           {error}
         </div>
@@ -613,7 +614,7 @@ function LokasiBarisField({
         ruangIdName="lokasiRuangId"
         subLokasiIdName="lokasiSubLokasiId"
       />
-      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="mt-3 grid grid-cols-[repeat(auto-fit,minmax(min(100%,180px),1fr))] gap-3">
         <NumberField
           label="Jumlah"
           name="lokasiJumlah"

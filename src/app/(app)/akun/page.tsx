@@ -32,9 +32,9 @@ export default async function AkunStafPage() {
         breadcrumb={`${staffList.length} akun · ${activeCount} aktif`}
         actions={<AddStaffDialog />}
       />
-      <div className="flex flex-1 flex-col gap-4 p-6">
-        <div className="overflow-hidden rounded-xl border border-border bg-surface">
-          <table className="w-full text-[13.5px]">
+      <div className="flex flex-1 flex-col gap-4 p-4 sm:p-6">
+        <div className="responsive-table-panel overflow-hidden rounded-xl border border-border bg-surface">
+          <table className="data-table w-full text-[13.5px]">
             <thead>
               <tr className="border-b border-border text-left text-xs text-dim">
                 <th className="py-3 pl-4.5 font-medium">Staf</th>
@@ -49,7 +49,7 @@ export default async function AkunStafPage() {
                 const isSelf = row.id === currentUserId;
                 return (
                   <tr key={row.id} className={`border-b border-border last:border-0 ${row.isActive ? "" : "opacity-60"}`}>
-                    <td className="py-3 pl-4.5">
+                    <td data-label="Staf" className="py-3 pl-4.5">
                       <div className="flex items-center gap-3">
                         <span className="grid size-8.5 flex-none place-items-center rounded-[9px] bg-surface-3 text-[13px] font-semibold text-text">
                           {initials(row.name)}
@@ -67,9 +67,9 @@ export default async function AkunStafPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="py-3 text-muted">{row.username}</td>
-                    <td className="py-3 text-muted">{formatLastActivity(row.lastLoginAt)}</td>
-                    <td className="py-3">
+                    <td data-label="Username" className="py-3 text-muted">{row.username}</td>
+                    <td data-label="Aktivitas terakhir" className="py-3 text-muted">{formatLastActivity(row.lastLoginAt)}</td>
+                    <td data-label="Status" className="py-3">
                       {row.isActive ? (
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-good-soft px-2.5 py-1 text-xs font-medium text-good">
                           <span className="size-1.5 rounded-full bg-good" />
@@ -81,7 +81,7 @@ export default async function AkunStafPage() {
                         </span>
                       )}
                     </td>
-                    <td className="py-3 pr-4.5 text-right">
+                    <td data-label="Tindakan" className="py-3 pr-4.5 text-right">
                       <StaffActionsMenu id={row.id} canDeactivate={row.isActive && !isSelf} />
                     </td>
                   </tr>

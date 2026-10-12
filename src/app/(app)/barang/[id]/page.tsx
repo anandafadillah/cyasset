@@ -117,7 +117,7 @@ export default async function BarangDetailPage({ params }: { params: Promise<{ i
 
   return (
     <>
-      <div className="sticky top-0 z-10 flex h-[66px] flex-none items-center gap-3 border-b border-border bg-surface px-6">
+      <div className="page-topbar sticky top-0 z-10 flex h-[66px] flex-none items-center gap-3 border-b border-border bg-surface px-6">
         <Link href="/barang" className="grid size-8 place-items-center rounded-lg text-muted hover:text-text">
           <ArrowLeft size={18} />
         </Link>
@@ -152,7 +152,7 @@ export default async function BarangDetailPage({ params }: { params: Promise<{ i
         </div>
       </div>
 
-      <div className="grid grid-cols-1 items-start gap-5.5 p-6 lg:grid-cols-[340px_1fr]">
+      <div className="grid grid-cols-1 items-start gap-5.5 p-4 sm:p-6 xl:grid-cols-[340px_1fr]">
         <div className="flex flex-col gap-4">
           <PhotoGallery photos={item.foto} alt={`Foto kondisi ${item.nama}`} />
 
@@ -210,16 +210,16 @@ export default async function BarangDetailPage({ params }: { params: Promise<{ i
               </span>
             )}
           </div>
-          <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2 xl:grid-cols-3">
             <Field label="Merk / Tipe" value={item.merkTipe || "—"} />
             <Field label="Kode Barang" value={item.kode} />
             <Field label="Kategori" value={item.kategori || "—"} />
-            <Field label="Lokasi" value={lokasiLabel} className="sm:col-span-2" />
+            <Field label="Lokasi" value={lokasiLabel} className="md:col-span-2" />
             <Field label="Ditambahkan" value={`${tanggalDitambahkan}${creator ? ` · ${creator.name}` : ""}`} />
             <Field label="Tanggal Masuk" value={tanggalMasukLabel} />
             <Field label="Sumber Dana" value={sumberDanaText} />
             <Field label="Nominal Dana" value={nominalDanaLabel} />
-            <Field label="Spesifikasi Teknis" value={item.spesifikasi || "—"} className="sm:col-span-3" />
+            <Field label="Spesifikasi Teknis" value={item.spesifikasi || "—"} className="md:col-span-2 xl:col-span-3" />
           </div>
         </div>
       </div>
@@ -234,9 +234,9 @@ export default async function BarangDetailPage({ params }: { params: Promise<{ i
       {isMultiLokasi && (
         <div className="px-6 pb-6">
           <h3 className="mb-3 text-sm font-semibold text-text">Lokasi & Kondisi ({item.lokasi.length})</h3>
-          <div className="overflow-hidden rounded-xl border border-border bg-surface">
+          <div className="responsive-table-panel overflow-hidden rounded-xl border border-border bg-surface">
             <div className="overflow-x-auto">
-              <table className="w-full text-[13.5px]">
+              <table className="data-table w-full text-[13.5px]">
                 <thead>
                   <tr className="border-b border-border text-left text-xs text-dim">
                     <th className="py-3 pl-4.5 font-medium">Lokasi</th>
@@ -249,17 +249,17 @@ export default async function BarangDetailPage({ params }: { params: Promise<{ i
                 <tbody>
                   {item.lokasi.map((row) => (
                     <tr key={row.id} className="border-b border-border last:border-0">
-                      <td className="py-3 pl-4.5 text-text">
+                      <td data-label="Lokasi" className="py-3 pl-4.5 text-text">
                         {row.ruang.nama}
                         {row.subLokasi ? ` · ${row.subLokasi.nama}` : ""}
                         <div className="text-[11px] text-dim">
                           Ged. {row.ruang.lantai.gedung.nama} · Lt. {row.ruang.lantai.nama}
                         </div>
                       </td>
-                      <td className="py-3 font-semibold text-text">{row.jumlah}</td>
-                      <td className="py-3 text-good">{row.jumlahBaik}</td>
-                      <td className="py-3 text-warn">{row.jumlahRusakRingan}</td>
-                      <td className="py-3 pr-4.5 text-danger">{row.jumlahRusakBerat}</td>
+                      <td data-label="Jumlah" className="py-3 font-semibold text-text">{row.jumlah}</td>
+                      <td data-label="Baik" className="py-3 text-good">{row.jumlahBaik}</td>
+                      <td data-label="Rusak Ringan" className="py-3 text-warn">{row.jumlahRusakRingan}</td>
+                      <td data-label="Rusak Berat" className="py-3 pr-4.5 text-danger">{row.jumlahRusakBerat}</td>
                     </tr>
                   ))}
                 </tbody>

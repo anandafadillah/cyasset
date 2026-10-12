@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-lg flex-col px-4 py-8">
+    <div className="public-page mx-auto flex min-h-dvh w-full min-w-0 max-w-lg flex-col px-4 py-6 [overflow-wrap:anywhere] sm:py-8">
       <div className="mb-6 flex items-center gap-2">
         <Image src="/logo.png" alt="CyAsset" width={32} height={32} className="size-8 rounded-lg" />
         <span className="text-sm font-semibold text-text">CyAsset</span>

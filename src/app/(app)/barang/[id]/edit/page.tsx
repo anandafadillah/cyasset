@@ -54,7 +54,7 @@ export default async function EditBarangPage({ params }: { params: Promise<{ id:
 
   return (
     <>
-      <div className="sticky top-0 z-10 flex h-[66px] flex-none items-center gap-3 border-b border-border bg-surface px-6">
+      <div className="page-topbar sticky top-0 z-10 flex h-[66px] flex-none items-center gap-3 border-b border-border bg-surface px-6">
         <Link
           href={`/barang/${item.id}`}
           className="grid size-8 place-items-center rounded-lg text-muted hover:text-text"
@@ -66,7 +66,7 @@ export default async function EditBarangPage({ params }: { params: Promise<{ id:
           <div className="mt-0.5 text-xs text-dim">Barang / {item.kode} / Ubah</div>
         </div>
       </div>
-      <div className="flex flex-1 flex-col p-6">
+      <div className="flex flex-1 flex-col p-4 sm:p-6">
         <BarangForm gedungList={gedungList} initialData={initialData} />
       </div>
     </>

@@ -23,22 +23,29 @@ export function BarangRowMenu({ id, nama }: { id: string; nama: string }) {
     function updatePosition() {
       const rect = buttonRef.current?.getBoundingClientRect();
       if (!rect) return;
-      setPosition({ top: rect.bottom + 4, left: rect.right - MENU_WIDTH });
+      const height = menuRef.current?.offsetHeight ?? 160;
+      setPosition({
+        top: Math.max(8, Math.min(rect.bottom + 4, window.innerHeight - height - 8)),
+        left: Math.max(8, Math.min(rect.right - MENU_WIDTH, window.innerWidth - MENU_WIDTH - 8)),
+      });
     }
 
     updatePosition();
 
-    function handleClickOutside(event: MouseEvent) {
+    function handleClickOutside(event: PointerEvent) {
       const target = event.target as Node;
       if (buttonRef.current?.contains(target) || menuRef.current?.contains(target)) return;
       setOpen(false);
     }
 
-    document.addEventListener("mousedown", handleClickOutside);
+    function closeOnEscape(event: KeyboardEvent) { if (event.key === "Escape") setOpen(false); }
+    document.addEventListener("pointerdown", handleClickOutside);
+    document.addEventListener("keydown", closeOnEscape);
     window.addEventListener("scroll", updatePosition, true);
     window.addEventListener("resize", updatePosition);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("pointerdown", handleClickOutside);
+      document.removeEventListener("keydown", closeOnEscape);
       window.removeEventListener("scroll", updatePosition, true);
       window.removeEventListener("resize", updatePosition);
     };
@@ -60,6 +67,8 @@ export function BarangRowMenu({ id, nama }: { id: string; nama: string }) {
       <button
         ref={buttonRef}
         type="button"
+        aria-label={`Tindakan untuk ${nama}`}
+        aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
         className="grid size-7 place-items-center rounded-md text-dim hover:bg-white/5 hover:text-text"
       >
@@ -70,7 +79,7 @@ export function BarangRowMenu({ id, nama }: { id: string; nama: string }) {
           <div
             ref={menuRef}
             style={{ top: position.top, left: position.left, width: MENU_WIDTH }}
-            className="fixed z-50 rounded-lg border border-border bg-surface-2 p-1 shadow-xl"
+            className="cyasset-popover fixed z-50 max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-lg border border-border bg-surface-2 p-1 shadow-xl"
           >
             <Link
               href={`/barang/${id}`}

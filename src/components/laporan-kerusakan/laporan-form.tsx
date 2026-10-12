@@ -92,7 +92,7 @@ export function LaporanForm({ barangOptions }: { barangOptions: BarangPickerOpti
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3.5">
+          <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
             {!isUnitMode && (
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="jumlahUnitTerdampak" className="text-xs font-medium text-muted">
@@ -134,7 +134,7 @@ export function LaporanForm({ barangOptions }: { barangOptions: BarangPickerOpti
       </div>
       </div>
 
-      <div className="sticky bottom-0 -mb-6 mt-4.5 flex items-center gap-3 border-t border-border bg-surface px-1 py-4">
+      <div className="form-actions sticky bottom-0 -mb-6 mt-4.5 flex items-center gap-3 border-t border-border bg-surface px-1 py-4">
         <div aria-live="polite" className="text-sm text-danger">
           {error}
         </div>

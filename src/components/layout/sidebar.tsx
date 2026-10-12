@@ -3,11 +3,17 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { SignOut } from "@phosphor-icons/react";
+import { SignOut, X } from "@phosphor-icons/react";
+import { TopbarSearch } from "./topbar-search";
 import { navGroups } from "./nav-items";
 import { signOutAction } from "@/app/(app)/actions";
 
-export function Sidebar({ userName }: { userName: string }) {
+export function Sidebar({ userName, drawer = false, onNavigate, onClose }: {
+  userName: string;
+  drawer?: boolean;
+  onNavigate?: () => void;
+  onClose?: () => void;
+}) {
   const pathname = usePathname();
   const initials =
     userName
@@ -18,11 +24,18 @@ export function Sidebar({ userName }: { userName: string }) {
       .toUpperCase() || "?";
 
   return (
-    <aside className="flex w-59 flex-none flex-col overflow-y-auto border-r border-border bg-surface px-3.5 py-4.5">
+    <aside className={`flex h-full flex-none flex-col overflow-y-auto bg-surface px-3.5 py-4.5 ${drawer ? "w-full" : "w-59 border-r border-border"}`}>
       <div className="flex items-center gap-2.5 px-2 pb-4.5 text-lg font-semibold text-text">
         <Image src="/logo.png" alt="CyAsset" width={32} height={32} className="size-8 flex-none rounded-[9px]" />
         CyAsset
+        {onClose && (
+          <button type="button" onClick={onClose} aria-label="Tutup menu navigasi" className="ml-auto grid size-11 place-items-center rounded-lg text-muted hover:bg-surface-2 hover:text-text">
+            <X size={22} />
+          </button>
+        )}
       </div>
+
+      {drawer && <div className="mb-4"><TopbarSearch onNavigate={onNavigate} /></div>}
 
       <nav className="flex flex-col gap-0.5">
         {navGroups.map((group, groupIndex) => (
@@ -38,8 +51,9 @@ export function Sidebar({ userName }: { userName: string }) {
                 <Link
                   key={item.href}
                   href={item.href}
+                  onClick={onNavigate}
                   aria-current={active ? "page" : undefined}
-                  className={`relative flex items-center gap-3 rounded-lg px-2.75 py-2.25 text-sm transition-colors ${
+                  className={`relative flex min-h-11 items-center gap-3 rounded-lg px-2.75 py-2.25 text-sm transition-colors xl:min-h-0 ${
                     active ? "bg-accent-soft text-accent" : "text-muted hover:bg-white/5 hover:text-text"
                   }`}
                 >
@@ -67,6 +81,7 @@ export function Sidebar({ userName }: { userName: string }) {
           <button
             type="submit"
             title="Keluar"
+            aria-label="Keluar dari akun"
             className="grid size-8 flex-none place-items-center rounded-lg text-dim hover:bg-white/5 hover:text-text"
           >
             <SignOut size={16} />

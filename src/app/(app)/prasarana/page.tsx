@@ -7,6 +7,7 @@ import { PrasaranaRowMenu } from "@/components/prasarana/prasarana-row-menu";
 import { PrasaranaStatusControl } from "@/components/prasarana/prasarana-status-control";
 import { PrasaranaTableRow } from "@/components/prasarana/prasarana-table-row";
 import { buildSortHref, SortableTh, type SortState } from "@/components/ui/sortable-th";
+import { ResponsiveTableSort } from "@/components/ui/responsive-table-sort";
 import { db } from "@/db";
 import { prasarana } from "@/db/schema";
 import { jenisLabel, sumberDanaLabel, formatRupiah, formatTanggalPendek } from "@/lib/prasarana-format";
@@ -105,12 +106,17 @@ export default async function PrasaranaPage({
           </Link>
         }
       />
-      <div className="flex flex-1 flex-col gap-4 p-6">
+      <div className="flex flex-1 flex-col gap-4 p-4 sm:p-6">
         <PrasaranaFilterBar activeTab={tab} counts={counts} />
+        <ResponsiveTableSort value={sortState.sort} direction={sortState.dir} options={[
+          { value: "nama", label: "Nama pekerjaan" }, { value: "jenis", label: "Jenis" },
+          { value: "tanggalMulai", label: "Waktu" }, { value: "sumberDana", label: "Sumber dana" },
+          { value: "nominalDana", label: "Nominal" }, { value: "status", label: "Status" },
+        ]} />
 
-        <div className="overflow-hidden rounded-xl border border-border bg-surface">
+        <div className="responsive-table-panel overflow-hidden rounded-xl border border-border bg-surface">
           <div className="overflow-x-auto">
-            <table className="w-full text-[13.5px]">
+            <table className="data-table w-full text-[13.5px]">
               <thead>
                 <tr className="border-b border-border text-left text-xs text-dim">
                   <SortableTh
@@ -169,7 +175,7 @@ export default async function PrasaranaPage({
                 )}
                 {rows.map((row) => (
                   <PrasaranaTableRow key={row.id} id={row.id}>
-                    <td className="py-3 pl-4.5">
+                    <td data-label="Pekerjaan" className="py-3 pl-4.5">
                       <div className="flex items-center gap-3">
                         <span className="grid size-9 flex-none place-items-center rounded-lg bg-surface-3 text-muted">
                           <HardHat size={17} />
@@ -180,25 +186,25 @@ export default async function PrasaranaPage({
                         </div>
                       </div>
                     </td>
-                    <td className="py-3">
+                    <td data-label="Jenis" className="py-3">
                       <span className="rounded-full bg-surface-3 px-2.5 py-1 text-xs text-muted">
                         {jenisLabel[row.jenis]}
                       </span>
                     </td>
-                    <td className="py-3 text-text">
+                    <td data-label="Waktu" className="py-3 text-text">
                       {formatTanggalPendek(row.tanggalMulai)}
                       {" – "}
                       {row.tanggalSelesai ? formatTanggalPendek(row.tanggalSelesai) : "berjalan"}
                     </td>
-                    <td className="py-3 text-text">
+                    <td data-label="Sumber Dana" className="py-3 text-text">
                       {sumberDanaLabel[row.sumberDana]}
                       {row.periodeDana && <div className="text-[11px] text-dim">{row.periodeDana}</div>}
                     </td>
-                    <td className="py-3 text-text">{row.nominalDana != null ? formatRupiah(row.nominalDana) : "—"}</td>
-                    <td className="py-3">
+                    <td data-label="Nominal" className="py-3 text-text">{row.nominalDana != null ? formatRupiah(row.nominalDana) : "—"}</td>
+                    <td data-label="Status" className="py-3">
                       <PrasaranaStatusControl id={row.id} nama={row.nama} status={row.status} />
                     </td>
-                    <td className="py-3 pr-4.5 text-right">
+                    <td data-label="Tindakan" className="py-3 pr-4.5 text-right">
                       <PrasaranaRowMenu id={row.id} nama={row.nama} />
                     </td>
                   </PrasaranaTableRow>

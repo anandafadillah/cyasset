@@ -73,7 +73,7 @@ export function PeminjamanItemPicker({ barangOptions }: { barangOptions: BarangO
               : undefined;
           const key = "barangUnitId" in item ? item.barangUnitId : item.barangId;
           return (
-            <div key={key} className="flex items-center gap-3 rounded-lg bg-surface-2 px-3 py-2.5">
+            <div key={key} className="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-lg bg-surface-2 px-3 py-2.5 md:flex">
               <span className="grid size-9.5 flex-none place-items-center rounded-lg bg-surface-3 text-muted">
                 <DesktopTower size={16} />
               </span>
@@ -94,13 +94,15 @@ export function PeminjamanItemPicker({ barangOptions }: { barangOptions: BarangO
                   max={option.tersedia}
                   value={item.jumlah}
                   onChange={(event) => updateJumlah(item.barangId, Number(event.target.valueAsNumber) || 1)}
-                  className="w-16 rounded-lg border border-border bg-surface px-2 py-1.5 text-center text-sm text-text outline-none focus:border-accent"
+                  aria-label={`Jumlah ${option.nama}`}
+                  className="col-span-2 col-start-2 row-start-2 w-full rounded-lg border border-border bg-surface px-2 py-1.5 text-center text-sm text-text outline-none focus:border-accent md:w-16"
                 />
               )}
               <button
                 type="button"
                 onClick={() => removeItem(key)}
-                className="grid size-7 flex-none place-items-center rounded-md text-dim hover:bg-danger-soft hover:text-danger"
+                aria-label={`Hapus ${option.nama} dari peminjaman`}
+                className="col-start-3 row-start-1 grid size-11 flex-none place-items-center rounded-md text-muted hover:bg-danger-soft hover:text-danger md:size-7"
               >
                 <Trash size={14} />
               </button>
@@ -120,7 +122,7 @@ export function PeminjamanItemPicker({ barangOptions }: { barangOptions: BarangO
         </button>
 
         {pickerOpen && (
-          <div className="absolute left-0 z-10 mt-1.5 w-80 rounded-lg border border-border bg-surface-2 p-2 shadow-xl">
+          <div className="absolute left-0 z-10 mt-1.5 w-full max-w-full rounded-lg border border-border bg-surface-2 p-2 shadow-xl sm:w-80">
             <input
               autoFocus
               value={query}

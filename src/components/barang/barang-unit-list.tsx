@@ -41,9 +41,9 @@ export function BarangUnitList({
   const [editingId, setEditingId] = useState<string | null>(null);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-surface">
+    <div className="responsive-table-panel overflow-hidden rounded-xl border border-border bg-surface">
       <div className="overflow-x-auto">
-        <table className="w-full text-[13px]">
+        <table className="data-table w-full text-[13px]">
           <thead>
             <tr className="border-b border-border text-left text-xs text-dim">
               <th className="py-2.5 pl-4.5 font-medium">Sub-kode</th>
@@ -111,9 +111,9 @@ function UnitRow({
   return (
     <>
       <tr className={`border-t border-border ${isNonaktif ? "opacity-60" : ""}`}>
-        <td className="py-2.5 pl-4.5 font-mono text-xs text-text">{unit.subKode}</td>
-        <td className="py-2.5 text-text">{unit.nomorSeri || "—"}</td>
-        <td className="py-2.5">
+        <td data-label="Sub-kode" className="py-2.5 pl-4.5 font-mono text-xs text-text">{unit.subKode}</td>
+        <td data-label="Nomor Seri" className="py-2.5 text-text">{unit.nomorSeri || "—"}</td>
+        <td data-label="Kondisi" className="py-2.5">
           <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${tone.className}`}>{tone.label}</span>
           {unit.sedangDipinjam && (
             <span className="ml-1.5 rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent">
@@ -121,9 +121,9 @@ function UnitRow({
             </span>
           )}
         </td>
-        <td className="py-2.5 text-text">{unit.lokasiLabel}</td>
-        <td className="py-2.5 text-text">{unit.foto.length}</td>
-        <td className="py-2.5 pr-4.5 text-right">
+        <td data-label="Lokasi" className="py-2.5 text-text">{unit.lokasiLabel}</td>
+        <td data-label="Foto" className="py-2.5 text-text">{unit.foto.length}</td>
+        <td data-label="Tindakan" className="py-2.5 pr-4.5 text-right">
           <div className="flex items-center justify-end gap-1.5">
             {!isNonaktif && (
               <Link
@@ -152,7 +152,7 @@ function UnitRow({
           <td colSpan={6} className="p-4.5">
             <form action={handleSubmit} className="flex flex-col gap-4">
               <input type="hidden" name="unitId" value={unit.id} />
-              <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
                 <TextField label="Nomor Seri" name="nomorSeri" defaultValue={unit.nomorSeri ?? undefined} />
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-medium text-muted">Kondisi</label>
@@ -204,7 +204,7 @@ function UnitRow({
                 <PhotoUploadField />
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="unit-edit-actions flex flex-wrap items-center gap-3">
                 <div aria-live="polite" className="text-xs text-danger">
                   {error}
                 </div>

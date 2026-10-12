@@ -7,6 +7,7 @@ import { BarangFilters, type LokasiOption } from "@/components/barang/barang-fil
 import { BarangRowMenu } from "@/components/barang/barang-row-menu";
 import { BarangTableRow } from "@/components/barang/barang-table-row";
 import { buildSortHref, SortableTh, type SortState } from "@/components/ui/sortable-th";
+import { ResponsiveTableSort } from "@/components/ui/responsive-table-sort";
 import { getLocationTree } from "@/lib/locations";
 import { formatTanggalPendek } from "@/lib/prasarana-format";
 import { getDipinjamMap } from "@/lib/stok";
@@ -129,12 +130,16 @@ export default async function BarangPage({
           </>
         }
       />
-      <div className="flex flex-1 flex-col gap-4 p-6">
+      <div className="flex flex-1 flex-col gap-4 p-4 sm:p-6">
         <BarangFilters kategoriOptions={kategoriOptions} lokasiOptions={lokasiOptions} />
+        <ResponsiveTableSort value={sortState.sort} direction={sortState.dir} options={[
+          { value: "nama", label: "Nama barang" }, { value: "kategori", label: "Kategori" },
+          { value: "jumlahUnit", label: "Jumlah unit" }, { value: "tanggalMasuk", label: "Tanggal masuk" },
+        ]} />
 
-        <div className="overflow-hidden rounded-xl border border-border bg-surface">
+        <div className="responsive-table-panel overflow-hidden rounded-xl border border-border bg-surface">
           <div className="overflow-x-auto">
-            <table className="w-full text-[13.5px]">
+            <table className="data-table w-full text-[13.5px]">
               <thead>
                 <tr className="border-b border-border text-left text-xs text-dim">
                   <SortableTh
@@ -189,7 +194,7 @@ export default async function BarangPage({
                   }`;
                   return (
                     <BarangTableRow key={row.id} id={row.id}>
-                      <td className="py-3 pl-4.5">
+                      <td data-label="Barang" className="py-3 pl-4.5">
                         <div className="flex items-center gap-3">
                           <span className="grid size-9 flex-none place-items-center rounded-lg bg-surface-3 text-muted">
                             <DesktopTower size={17} />
@@ -203,7 +208,7 @@ export default async function BarangPage({
                           </div>
                         </div>
                       </td>
-                      <td className="py-3">
+                      <td data-label="Kategori" className="py-3">
                         {row.kategori ? (
                           <span className="rounded-full bg-surface-3 px-2.5 py-1 text-xs text-muted">
                             {row.kategori}
@@ -212,7 +217,7 @@ export default async function BarangPage({
                           <span className="text-dim">—</span>
                         )}
                       </td>
-                      <td className="py-3 text-text">
+                      <td data-label="Lokasi" className="py-3 text-text">
                         {row.lokasi.length > 1 ? (
                           <span className="rounded-full bg-accent-soft px-2.5 py-1 text-xs font-medium text-accent">
                             {row.lokasi.length} lokasi
@@ -224,21 +229,21 @@ export default async function BarangPage({
                           </>
                         )}
                       </td>
-                      <td className="py-3 text-text">{row.jumlahUnit}</td>
-                      <td className="py-3">
+                      <td data-label="Jumlah" className="py-3 text-text">{row.jumlahUnit}</td>
+                      <td data-label="Kondisi" className="py-3">
                         <ConditionBar
                           baik={row.jumlahBaik}
                           rusakRingan={row.jumlahRusakRingan}
                           rusakBerat={row.jumlahRusakBerat}
                         />
                       </td>
-                      <td className="py-3 text-text">
+                      <td data-label="Tersedia" className="py-3 text-text">
                         {Math.max(0, row.jumlahBaik - (dipinjamMap.get(row.id) ?? 0))}
                       </td>
-                      <td className="py-3 text-text">
+                      <td data-label="Tanggal Masuk" className="py-3 text-text">
                         {row.tanggalMasuk ? formatTanggalPendek(row.tanggalMasuk) : "—"}
                       </td>
-                      <td className="py-3 pr-4.5 text-right">
+                      <td data-label="Tindakan" className="py-3 pr-4.5 text-right">
                         <BarangRowMenu id={row.id} nama={row.nama} />
                       </td>
                     </BarangTableRow>
@@ -248,17 +253,17 @@ export default async function BarangPage({
             </table>
           </div>
 
-          <div className="flex items-center border-t border-border px-4.5 py-3.5">
+          <div className="flex flex-wrap items-center gap-3 border-t border-border px-1 py-3.5 lg:px-4.5">
             <span className="text-xs text-dim">
               Menampilkan {rows.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}–
               {(page - 1) * PAGE_SIZE + rows.length} dari {total} jenis barang
             </span>
-            <div className="ml-auto flex items-center gap-1.5">
+            <div className="flex max-w-full flex-wrap items-center gap-1.5 sm:ml-auto">
               <PageLink page={page - 1} disabled={page <= 1} searchParams={params} label="‹" />
               {Array.from({ length: totalPages }, (_, i) => i + 1)
                 .slice(Math.max(0, page - 3), Math.max(0, page - 3) + 5)
                 .map((p) => (
-                  <PageLink key={p} page={p} active={p === page} searchParams={params} label={String(p)} />
+                  <PageLink key={p} page={p} active={p === page} mobileHidden={Math.abs(p - page) > 1} searchParams={params} label={String(p)} />
                 ))}
               <PageLink page={page + 1} disabled={page >= totalPages} searchParams={params} label="›" />
             </div>
@@ -273,18 +278,20 @@ function PageLink({
   page,
   active,
   disabled,
+  mobileHidden = false,
   searchParams,
   label,
 }: {
   page: number;
   active?: boolean;
   disabled?: boolean;
+  mobileHidden?: boolean;
   searchParams: Record<string, string | string[] | undefined>;
   label: string;
 }) {
   if (disabled) {
     return (
-      <span className="grid size-8 place-items-center rounded-lg border border-border text-xs text-faint">
+      <span className="grid size-11 place-items-center rounded-lg border border-border text-xs text-faint lg:size-8">
         {label}
       </span>
     );
@@ -298,7 +305,9 @@ function PageLink({
   return (
     <Link
       href={`/barang?${params.toString()}`}
-      className={`grid size-8 place-items-center rounded-lg border text-xs font-medium ${
+      aria-label={label === "‹" ? "Halaman sebelumnya" : label === "›" ? "Halaman berikutnya" : `Halaman ${label}`}
+      aria-current={active ? "page" : undefined}
+      className={`${mobileHidden ? "hidden lg:grid" : "grid"} size-11 place-items-center rounded-lg border text-xs font-medium lg:size-8 ${
         active ? "border-accent-strong bg-accent-strong text-white" : "border-border text-muted hover:text-text"
       }`}
     >

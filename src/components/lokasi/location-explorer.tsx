@@ -6,6 +6,7 @@ import {
   CaretDown,
   CaretRight,
   DoorOpen,
+  DotsThreeOutline,
   FileText,
   PencilSimple,
   Plus,
@@ -77,8 +78,8 @@ export function LocationExplorer({
           </button>
         }
       />
-      <div className="grid grid-cols-1 items-start gap-5 p-6 lg:grid-cols-[1fr_360px]">
-        <div className="overflow-hidden rounded-xl border border-border bg-surface p-2">
+      <div className="grid min-w-0 grid-cols-1 items-start gap-5 p-4 sm:p-6 xl:grid-cols-[1fr_360px]">
+        <div className="location-tree min-w-0 rounded-xl border border-border bg-surface p-2">
           {gedungList.length === 0 && (
             <div className="p-6 text-center text-sm text-dim">Belum ada data Gedung.</div>
           )}
@@ -303,7 +304,18 @@ function RowActions({
   addLabel?: string;
 }) {
   return (
-    <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+    <>
+    <details className="location-touch-actions relative shrink-0 xl:hidden">
+      <summary aria-label="Tindakan lokasi" className="grid size-11 cursor-pointer list-none place-items-center rounded-lg text-muted hover:bg-surface-2 [&::-webkit-details-marker]:hidden">
+        <DotsThreeOutline size={20} />
+      </summary>
+      <div className="absolute right-0 z-20 mt-1 w-52 max-w-[calc(100vw-2rem)] rounded-xl border border-border bg-surface-2 p-1 shadow-xl">
+        {onAdd && <button type="button" onClick={(event) => { event.currentTarget.closest("details")?.removeAttribute("open"); onAdd(); }} className="flex min-h-11 w-full items-center gap-2 rounded-lg px-3 text-left text-sm text-text"><Plus size={16} />{addLabel}</button>}
+        <button type="button" onClick={(event) => { event.currentTarget.closest("details")?.removeAttribute("open"); onEdit(); }} className="flex min-h-11 w-full items-center gap-2 rounded-lg px-3 text-left text-sm text-text"><PencilSimple size={16} />Ubah</button>
+        <button type="button" onClick={(event) => { event.currentTarget.closest("details")?.removeAttribute("open"); onDelete(); }} className="flex min-h-11 w-full items-center gap-2 rounded-lg px-3 text-left text-sm text-danger"><Trash size={16} />Hapus</button>
+      </div>
+    </details>
+    <div className="location-desktop-actions hidden items-center gap-0.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100 xl:flex">
       {onAdd && (
         <button
           type="button"
@@ -340,5 +352,6 @@ function RowActions({
         <Trash size={13} />
       </button>
     </div>
+    </>
   );
 }

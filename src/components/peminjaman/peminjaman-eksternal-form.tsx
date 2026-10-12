@@ -31,14 +31,14 @@ export function PeminjamanEksternalForm({ barangOptions }: { barangOptions: Bara
       <div className="grid flex-1 grid-cols-1 items-start gap-5.5 xl:grid-cols-[1fr_320px]">
       <div className="flex flex-col gap-4.5">
         <Panel title="Peminjam">
-          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
             <Field label="Nama Peminjam / Instansi" name="peminjamNama" required />
             <Field label="Penanggung Jawab" name="penanggungJawab" required />
             <Field label="No. HP" name="peminjamKontak" />
             <Field label="Lokasi Pemanfaatan" name="lokasiPemanfaatan" required />
             <Field label="Tanggal Mulai" name="tanggalPinjam" type="date" required defaultValue={today()} />
             <Field label="Rencana Kembali" name="tanggalRencanaKembali" type="date" required defaultValue={today()} />
-            <div className="sm:col-span-2">
+            <div className="md:col-span-2">
               <TextAreaField label="Tujuan Peminjaman" name="tujuan" required />
             </div>
           </div>
@@ -66,7 +66,7 @@ export function PeminjamanEksternalForm({ barangOptions }: { barangOptions: Bara
       </div>
       </div>
 
-      <div className="sticky bottom-0 -mx-6 -mb-6 mt-5.5 flex items-center gap-3 border-t border-border bg-surface px-6 py-4">
+      <div className="form-actions sticky bottom-0 -mx-6 -mb-6 mt-5.5 flex items-center gap-3 border-t border-border bg-surface px-6 py-4">
         <div aria-live="polite" className="text-sm text-danger">
           {error}
         </div>

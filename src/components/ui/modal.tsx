@@ -33,19 +33,21 @@ export function Modal({
       onClose={onClose}
       onCancel={onClose}
       onClick={handleBackdropClick}
-      className="m-auto max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-border bg-surface p-0 text-text backdrop:bg-black/60"
+      aria-label={title}
+      className="cyasset-modal m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-2xl border border-border bg-surface p-0 text-text backdrop:bg-black/60"
     >
-      <div className="flex items-center justify-between border-b border-border px-5 py-4">
+      <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-border bg-surface px-4 py-3 sm:px-5 sm:py-4">
         <h3 className="text-base font-semibold">{title}</h3>
         <button
           type="button"
           onClick={onClose}
-          className="grid size-7 place-items-center rounded-md text-dim hover:bg-white/5 hover:text-text"
+          aria-label="Tutup dialog"
+          className="grid size-11 shrink-0 place-items-center rounded-md text-muted hover:bg-surface-2 hover:text-text"
         >
           <X size={16} />
         </button>
       </div>
-      <div className="p-5">{children}</div>
+      <div className="p-4 sm:p-5">{children}</div>
     </dialog>
   );
 }

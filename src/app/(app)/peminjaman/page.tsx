@@ -69,12 +69,12 @@ export default async function PeminjamanPage({
           </>
         }
       />
-      <div className="flex flex-1 flex-col gap-4 p-6">
+      <div className="flex flex-1 flex-col gap-4 p-4 sm:p-6">
         <PeminjamanFilterBar activeTab={tab} counts={counts} />
 
-        <div className="overflow-hidden rounded-xl border border-border bg-surface">
+        <div className="responsive-table-panel overflow-hidden rounded-xl border border-border bg-surface">
           <div className="overflow-x-auto">
-            <table className="w-full text-[13.5px]">
+            <table className="data-table w-full text-[13.5px]">
               <thead>
                 <tr className="border-b border-border text-left text-xs text-dim">
                   <th className="py-3 pl-4.5 font-medium">Peminjam</th>
@@ -99,7 +99,7 @@ export default async function PeminjamanPage({
                   const barangLabel = row.items.map((item) => `${item.barang.nama} ×${item.jumlah}`).join(", ");
                   return (
                     <tr key={row.id} className="border-b border-border last:border-0">
-                      <td className="py-3 pl-4.5">
+                      <td data-label="Peminjam" className="py-3 pl-4.5">
                         <div className="font-medium text-text">{row.peminjamNama}</div>
                         <div className="text-[11px] text-dim">
                           {row.jenis === "eksternal"
@@ -109,8 +109,8 @@ export default async function PeminjamanPage({
                             : [row.peminjamKeterangan, row.peminjamKontak].filter(Boolean).join(" · ")}
                         </div>
                       </td>
-                      <td className="max-w-70 py-3 text-text">{barangLabel}</td>
-                      <td className="py-3">
+                      <td data-label="Barang" className="max-w-70 py-3 text-text">{barangLabel}</td>
+                      <td data-label="Jenis" className="py-3">
                         <span
                           className={`rounded-full px-2.5 py-1 text-xs font-medium ${
                             row.jenis === "eksternal" ? "bg-accent-soft text-accent" : "bg-surface-3 text-muted"
@@ -119,18 +119,18 @@ export default async function PeminjamanPage({
                           {row.jenis === "eksternal" ? "Eksternal" : "Internal"}
                         </span>
                       </td>
-                      <td className="py-3 text-text">{formatTanggalPendek(row.tanggalPinjam)}</td>
-                      <td className={`py-3 ${terlambat ? "text-danger" : "text-text"}`}>
+                      <td data-label="Pinjam" className="py-3 text-text">{formatTanggalPendek(row.tanggalPinjam)}</td>
+                      <td data-label="Rencana Kembali" className={`py-3 ${terlambat ? "text-danger" : "text-text"}`}>
                         {formatTanggalPendek(row.tanggalRencanaKembali)}
                       </td>
-                      <td className="py-3">
+                      <td data-label="Status" className="py-3">
                         <StatusChip
                           status={row.status}
                           terlambat={terlambat}
                           hariTerlambat={daysBetween(row.tanggalRencanaKembali, todayStr)}
                         />
                       </td>
-                      <td className="py-3 pr-4.5 text-right">
+                      <td data-label="Tindakan" className="py-3 pr-4.5 text-right">
                         <div className="flex items-center justify-end gap-2">
                           {row.nomorSurat && (
                             <a

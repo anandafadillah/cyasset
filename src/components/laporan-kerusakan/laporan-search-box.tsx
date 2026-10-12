@@ -27,12 +27,13 @@ export function LaporanSearchBox() {
   }, [q]);
 
   return (
-    <div className="flex w-55 items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm">
+    <div className="flex w-full min-w-0 items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm sm:w-55">
       <MagnifyingGlass size={15} className="text-dim" />
       <input
         value={q}
         onChange={(event) => setQ(event.target.value)}
         placeholder="Cari tiket…"
+        aria-label="Cari tiket kerusakan"
         className="w-full bg-transparent text-text outline-none placeholder:text-dim"
       />
     </div>

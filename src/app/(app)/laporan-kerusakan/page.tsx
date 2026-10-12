@@ -4,6 +4,7 @@ import { Topbar } from "@/components/layout/topbar";
 import { LaporanSearchBox } from "@/components/laporan-kerusakan/laporan-search-box";
 import { LaporanStatusSelect } from "@/components/laporan-kerusakan/laporan-status-select";
 import { TambahUnitPenggantiButton } from "@/components/laporan-kerusakan/tambah-unit-pengganti-button";
+import { ResponsiveBoard } from "@/components/laporan-kerusakan/responsive-board";
 import { db } from "@/db";
 
 const columns = [
@@ -60,11 +61,10 @@ export default async function LaporanKerusakanPage({
           </>
         }
       />
-      <div className="flex-1 overflow-x-auto p-6">
-        <div className="grid min-w-225 grid-cols-4 items-start gap-3.5">
-          {columns.map((col) => {
+      <div className="min-w-0 flex-1 p-4 sm:p-6">
+        <ResponsiveBoard columns={columns.map((col) => {
             const colRows = rows.filter((row) => row.status === col.status);
-            return (
+            return { status: col.status, label: col.label, count: colRows.length, content: (
               <div key={col.status}>
                 <div className="mb-3 flex items-center gap-2 px-0.5">
                   <span className={`size-2 flex-none rounded-full ${col.dotClass}`} />
@@ -121,9 +121,8 @@ export default async function LaporanKerusakanPage({
                   )}
                 </div>
               </div>
-            );
-          })}
-        </div>
+            ) };
+          })} />
       </div>
     </>
   );

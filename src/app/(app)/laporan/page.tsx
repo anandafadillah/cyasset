@@ -38,8 +38,8 @@ export default async function LaporanPage() {
   return (
     <>
       <Topbar title="Laporan & Ekspor" breadcrumb="Untuk pimpinan & keperluan audit" />
-      <div className="flex flex-1 flex-col gap-5 p-6">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="flex flex-1 flex-col gap-5 p-4 sm:p-6">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           <div className="rounded-xl border border-border bg-surface p-5">
             <IconBadge icon={<ClipboardText size={20} />} />
             <h3 className="mb-1 text-base font-semibold text-text">Laporan Inventaris Ruang</h3>
@@ -161,14 +161,14 @@ export default async function LaporanPage() {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-xl border border-border bg-surface">
-          <div className="flex items-center gap-2.5 border-b border-border px-4.5 py-3.5">
+        <div className="responsive-table-panel overflow-hidden rounded-xl border border-border bg-surface">
+          <div className="flex flex-wrap items-center gap-2.5 border-b border-border px-4.5 py-3.5">
             <ClockCounterClockwise size={17} className="text-accent" />
             <h3 className="text-sm font-semibold text-text">Surat Peminjaman Terbit</h3>
             <span className="ml-auto text-xs text-dim">Dapat dicetak ulang bila salinan hilang</span>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-[13.5px]">
+            <table className="data-table w-full text-[13.5px]">
               <thead>
                 <tr className="border-b border-border text-left text-xs text-dim">
                   <th className="py-3 pl-4.5 font-medium">Nomor Surat</th>
@@ -188,12 +188,12 @@ export default async function LaporanPage() {
                 )}
                 {suratRows.map((row) => (
                   <tr key={row.id} className="border-b border-border last:border-0">
-                    <td className="py-3 pl-4.5 font-mono text-xs text-muted">{row.nomorSurat}</td>
-                    <td className="py-3 text-text">{row.peminjamNama}</td>
-                    <td className="py-3 text-text">
+                    <td data-label="Nomor Surat" className="py-3 pl-4.5 font-mono text-xs text-muted">{row.nomorSurat}</td>
+                    <td data-label="Peminjam" className="py-3 text-text">{row.peminjamNama}</td>
+                    <td data-label="Tanggal" className="py-3 text-text">
                       {row.createdAt.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}
                     </td>
-                    <td className="py-3">
+                    <td data-label="Status" className="py-3">
                       {row.status === "dipinjam" ? (
                         <span className="rounded-full bg-accent-soft px-2.5 py-1 text-xs font-medium text-accent">
                           Berjalan
@@ -204,7 +204,7 @@ export default async function LaporanPage() {
                         </span>
                       )}
                     </td>
-                    <td className="py-3 pr-4.5 text-right">
+                    <td data-label="Tindakan" className="py-3 pr-4.5 text-right">
                       <a
                         href={`/api/surat/${row.id}`}
                         target="_blank"

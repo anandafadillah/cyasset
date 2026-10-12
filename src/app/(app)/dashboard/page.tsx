@@ -121,7 +121,7 @@ export default async function DashboardPage() {
         breadcrumb={now.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
       />
 
-      <div className="flex flex-1 flex-col gap-6.5 p-6">
+      <div className="flex flex-1 flex-col gap-6.5 p-4 sm:p-6">
         <div className="grid grid-cols-1 items-stretch gap-6.5 lg:grid-cols-[1.1fr_1fr]">
           <div className="flex flex-col gap-1.5 py-2">
             <div className="text-xs font-semibold tracking-[0.12em] text-accent uppercase">

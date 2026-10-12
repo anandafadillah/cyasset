@@ -66,7 +66,7 @@ export default async function CetakQrBarangPage({
 
   return (
     <>
-      <div className="print-hide sticky top-0 z-10 flex h-[66px] flex-none items-center gap-3 border-b border-border bg-surface px-6">
+      <div className="print-hide page-topbar sticky top-0 z-10 flex h-[66px] flex-none items-center gap-3 border-b border-border bg-surface px-6">
         <Link
           href={`/barang/${item.id}`}
           className="grid size-8 place-items-center rounded-lg text-muted hover:text-text"
@@ -78,7 +78,7 @@ export default async function CetakQrBarangPage({
           <div className="mt-0.5 text-xs text-dim">Barang / {qrTarget.kode} / Cetak QR</div>
         </div>
       </div>
-      <div className="qr-print-content flex flex-1 flex-col items-center justify-center gap-8 p-6 sm:p-10">
+      <div className="qr-print-content flex flex-1 flex-col items-center justify-center gap-8 p-4 sm:p-6 sm:p-10">
         <QrLabel card={card} />
         <QrDownloadOptions card={card} filename={`QR_${qrTarget.kode}`} />
       </div>
