@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { and, eq } from "drizzle-orm";
-import { DesktopTower, Prohibit } from "@phosphor-icons/react/dist/ssr";
+import { Prohibit } from "@phosphor-icons/react/dist/ssr";
 import { PublicBadge, PublicField, PublicPanel } from "@/components/public/card-primitives";
+import { PublicPhotoCarousel } from "@/components/public/photo-carousel";
 import { db } from "@/db";
 import { barangUnit, peminjaman, peminjamanItem } from "@/db/schema";
 
@@ -27,7 +28,9 @@ export default async function PublicUnitPage({ params }: { params: Promise<{ id:
   const unit = await db.query.barangUnit.findFirst({
     where: eq(barangUnit.id, id),
     with: {
-      barang: true,
+      barang: {
+        with: { foto: { orderBy: (table, { asc }) => asc(table.createdAt) } },
+      },
       ruang: { with: { lantai: { with: { gedung: true } } } },
       subLokasi: true,
       foto: { orderBy: (table, { asc }) => asc(table.createdAt) },
@@ -70,22 +73,17 @@ export default async function PublicUnitPage({ params }: { params: Promise<{ id:
     unit.subLokasi ? ` · ${unit.subLokasi.nama}` : ""
   }`;
 
-  const foto = unit.foto[0] ?? null;
+  const useParentPhotos = unit.foto.length === 0;
+  const photos = useParentPhotos ? unit.barang.foto : unit.foto;
 
   return (
     <div className="flex flex-col gap-4">
-      {foto ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={foto.path}
-          alt={unit.subKode}
-          className="h-52 w-full rounded-xl border border-border object-cover"
-        />
-      ) : (
-        <div className="grid h-40 place-items-center rounded-xl border border-dashed border-border bg-surface-2 text-faint">
-          <DesktopTower size={32} />
-        </div>
-      )}
+      <PublicPhotoCarousel
+        key={unit.id}
+        photos={photos.map(({ id, path }) => ({ id, path }))}
+        alt={`${unit.barang.nama} (${unit.subKode})`}
+        caption={useParentPhotos && photos.length > 0 ? "Foto barang induk" : undefined}
+      />
 
       <div>
         <div className="mb-1.5 flex flex-wrap items-center gap-1.5">

@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
-import { DesktopTower } from "@phosphor-icons/react/dist/ssr";
 import { PublicBadge, PublicField, PublicPanel } from "@/components/public/card-primitives";
+import { PublicPhotoCarousel } from "@/components/public/photo-carousel";
 import { db } from "@/db";
 import { barang } from "@/db/schema";
 
@@ -45,18 +45,11 @@ export default async function PublicBarangPage({ params }: { params: Promise<{ i
 
   return (
     <div className="flex flex-col gap-4">
-      {item.foto[0] ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={item.foto[0].path}
-          alt={item.nama}
-          className="h-52 w-full rounded-xl border border-border object-cover"
-        />
-      ) : (
-        <div className="grid h-40 place-items-center rounded-xl border border-dashed border-border bg-surface-2 text-faint">
-          <DesktopTower size={32} />
-        </div>
-      )}
+      <PublicPhotoCarousel
+        key={item.id}
+        photos={item.foto.map(({ id, path }) => ({ id, path }))}
+        alt={item.nama}
+      />
 
       <div>
         <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
