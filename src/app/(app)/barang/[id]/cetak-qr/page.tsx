@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
 import { QrLabel } from "@/components/qr/qr-label";
-import { PrintQrButton } from "@/components/qr/print-button";
+import { QrDownloadOptions } from "@/components/qr/qr-download-options";
 import { generateQrDataUrl } from "@/lib/qr";
 import { db } from "@/db";
 import { barang, barangUnit } from "@/db/schema";
@@ -46,12 +46,10 @@ export default async function CetakQrBarangPage({
           <h2 className="text-xl font-semibold text-text">Cetak QR</h2>
           <div className="mt-0.5 text-xs text-dim">Barang / {qrTarget.kode} / Cetak QR</div>
         </div>
-        <div className="ml-auto">
-          <PrintQrButton />
-        </div>
       </div>
-      <div className="flex flex-1 items-center justify-center p-10">
+      <div className="flex flex-1 flex-col items-center justify-center gap-8 p-6 sm:p-10">
         <QrLabel qrDataUrl={qrDataUrl} nama={qrTarget.nama} kode={qrTarget.kode} />
+        <QrDownloadOptions qrDataUrl={qrDataUrl} filename={`QR_${qrTarget.kode}`} />
       </div>
     </>
   );
