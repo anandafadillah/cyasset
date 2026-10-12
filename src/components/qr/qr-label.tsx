@@ -1,10 +1,16 @@
-export function QrLabel({ qrDataUrl, nama, kode }: { qrDataUrl: string; nama: string; kode: string }) {
+import type { QrCardImage } from "@/lib/qr-card";
+
+export function QrLabel({ card }: { card: QrCardImage }) {
   return (
-    <div className="flex w-64 flex-col items-center gap-2 rounded-xl border border-border bg-white p-5 text-center print:border-2 print:border-black print:shadow-none">
+    <div className="w-80 max-w-full shrink-0 print:w-[60mm]">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={qrDataUrl} alt={`QR Code ${nama}`} className="size-48" />
-      <div className="text-sm font-semibold text-black">{nama}</div>
-      <div className="font-mono text-xs text-black/70">{kode}</div>
+      <img
+        src={card.dataUrl}
+        alt={card.alt}
+        width={card.width}
+        height={card.height}
+        className="qr-card-preview block h-auto w-full rounded-[14px]"
+      />
     </div>
   );
 }

@@ -82,4 +82,24 @@ body {
   .print-hide {
     display: none !important;
   }
+  body:has(.qr-card-preview) {
+    background: #fff;
+    display: block;
+    color-scheme: light;
+  }
+  body:has(.qr-card-preview) > div,
+  body:has(.qr-card-preview) > div > div {
+    height: auto;
+    overflow: visible;
+    display: block;
+  }
+  .qr-print-content {
+    display: block;
+    padding: 0;
+  }
+  .qr-card-preview {
+    break-inside: avoid;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
 }
