@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Buildings, Eye, FilePdf, MagnifyingGlass } from "@phosphor-icons/react";
+import { Buildings, Eye, FilePdf, MagnifyingGlass, QrCode } from "@phosphor-icons/react";
 import { ConditionBar } from "@/components/barang/condition-bar";
 
 export type KirRuangRingkas = {
@@ -135,6 +135,13 @@ export function KirRuangList({ ruangList }: { ruangList: KirRuangRingkas[] }) {
                             <FilePdf size={13} />
                             Cetak KIR
                           </a>
+                          <Link
+                            href={`/kir/${r.id}/cetak-qr`}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted hover:text-text"
+                          >
+                            <QrCode size={13} />
+                            Cetak QR
+                          </Link>
                         </div>
                       </td>
                     </tr>

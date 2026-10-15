@@ -17,6 +17,9 @@ type QrCardData = {
   kode?: string | null;
   lokasi?: string | null;
   canReportDamage?: boolean;
+  /** Override teks footer & label kolom kode (default untuk barang/prasarana). */
+  footer?: string;
+  kodeLabel?: string;
 };
 
 let logoDataUrl: Promise<string> | undefined;
@@ -98,9 +101,10 @@ export async function generateQrCardImage(data: QrCardData): Promise<QrCardImage
   const detailsHeight = Math.max(codeLines.length, locationLines.length) * 14 + 33;
   const footerTop = detailsTop + detailsHeight;
   const height = footerTop + 30;
-  const footer = data.canReportDamage
+  const footer = data.footer ?? (data.canReportDamage
     ? "Scan untuk melihat detail & lapor kerusakan"
-    : "Scan untuk melihat detail prasarana";
+    : "Scan untuk melihat detail prasarana");
+  const kodeLabel = data.kodeLabel ?? "KODE ASET";
 
   const qr = QRCode.create(buildPublicUrl(data.path), { errorCorrectionLevel: "M" });
   const quietZone = 4;
@@ -134,7 +138,7 @@ export async function generateQrCardImage(data: QrCardData): Promise<QrCardImage
       <rect x="${160 - Math.min(138, Math.max(38, kategori.length * 3.4 + 10))}" y="${categoryTop}" width="${Math.min(276, Math.max(76, kategori.length * 6.8 + 20))}" height="${categoryHeight}" rx="${categoryHeight / 2}" fill="#eff2fb"/>
       ${svgText(categoryLines, 160, categoryTop + 15, 14, 'font-size="11" text-anchor="middle" fill="#1e3a8a" font-family="Consolas, Courier New, monospace"')}
       <path d="M0 ${detailsTop}H320 M160 ${detailsTop}v${detailsHeight}" stroke="#d4d4d8" stroke-dasharray="4 3" fill="none"/>
-      <text x="18" y="${detailsTop + 19}" font-size="9" fill="#71717a" letter-spacing="0.54">KODE ASET</text>
+      <text x="18" y="${detailsTop + 19}" font-size="9" fill="#71717a" letter-spacing="0.54">${escapeXml(kodeLabel)}</text>
       <text x="178" y="${detailsTop + 19}" font-size="9" fill="#71717a" letter-spacing="0.54">LOKASI</text>
       ${svgText(codeLines, 18, detailsTop + 35, 14, 'font-size="11" font-weight="500" font-family="Consolas, Courier New, monospace"')}
       ${svgText(locationLines, 178, detailsTop + 35, 14, 'font-size="11" font-weight="500"')}

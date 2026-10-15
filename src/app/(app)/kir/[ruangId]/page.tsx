@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
+import { ArrowLeft, Eye, QrCode } from "@phosphor-icons/react/dist/ssr";
 import { CetakKirForm } from "@/components/kir/cetak-kir-form";
 import { getKirRuang } from "@/lib/kir-data";
 
@@ -28,6 +28,23 @@ export default async function KirDetailPage({ params }: { params: Promise<{ ruan
         <div className="min-w-0">
           <h2 className="truncate text-xl font-semibold text-text">{ruang.nama}</h2>
           <div className="mt-0.5 text-xs text-dim">Kartu Inventaris Ruangan / {ruang.kode ?? ruang.nama}</div>
+        </div>
+        <div className="ml-auto flex items-center gap-2">
+          <Link
+            href={`/s/ruang/${ruang.id}`}
+            target="_blank"
+            className="hidden items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted hover:text-text sm:flex"
+          >
+            <Eye size={16} />
+            Halaman publik
+          </Link>
+          <Link
+            href={`/kir/${ruang.id}/cetak-qr`}
+            className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted hover:text-text"
+          >
+            <QrCode size={16} />
+            Cetak QR
+          </Link>
         </div>
       </div>
 
