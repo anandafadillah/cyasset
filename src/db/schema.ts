@@ -448,3 +448,26 @@ export const prasaranaFotoRelations = relations(prasaranaFoto, ({ one }) => ({
 export type Prasarana = typeof prasarana.$inferSelect;
 export type NewPrasarana = typeof prasarana.$inferInsert;
 export type PrasaranaFoto = typeof prasaranaFoto.$inferSelect;
+
+// ── Pengaturan Sekolah — singleton (satu baris, id=1) identitas sekolah untuk
+// kop & tanda tangan dokumen (KIR, surat, laporan). Baca lewat
+// getPengaturanSekolah() di src/lib/pengaturan-sekolah.ts yang memberi default
+// bila baris belum pernah disimpan.
+
+export const pengaturanSekolah = pgTable("pengaturan_sekolah", {
+  id: integer("id").primaryKey().default(1),
+  namaSekolah: text("nama_sekolah").notNull(),
+  provinsi: text("provinsi"),
+  kabupatenKota: text("kabupaten_kota"),
+  unit: text("unit"),
+  kotaTandaTangan: text("kota_tanda_tangan"),
+  kepalaSekolahNama: text("kepala_sekolah_nama"),
+  kepalaSekolahNip: text("kepala_sekolah_nip"),
+  pengurusBarangNama: text("pengurus_barang_nama"),
+  pengurusBarangNip: text("pengurus_barang_nip"),
+  ...auditColumns,
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type PengaturanSekolahRow = typeof pengaturanSekolah.$inferSelect;

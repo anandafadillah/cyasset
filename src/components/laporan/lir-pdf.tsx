@@ -16,8 +16,6 @@ export type LirData = {
   }[];
 };
 
-const SEKOLAH = "SMK CYBER MEDIA";
-
 const styles = StyleSheet.create({
   page: { fontFamily: "Times-Roman", fontSize: 10.5, color: "#1a1a1a", padding: 44 },
   kop: {
@@ -46,14 +44,14 @@ const styles = StyleSheet.create({
   ttdSpace: { height: 56 },
 });
 
-export function LirPdf({ data }: { data: LirData }) {
+export function LirPdf({ data, namaSekolah }: { data: LirData; namaSekolah: string }) {
   const totalUnit = data.items.reduce((sum, item) => sum + item.jumlahUnit, 0);
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.kop}>
-          <Text style={styles.sekolah}>{SEKOLAH}</Text>
+          <Text style={styles.sekolah}>{namaSekolah}</Text>
           <Text>Laporan Inventaris Ruang</Text>
         </View>
         <Text style={styles.judul}>LAPORAN INVENTARIS RUANG</Text>

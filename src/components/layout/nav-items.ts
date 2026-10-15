@@ -7,6 +7,7 @@ import {
   Wrench,
   FileText,
   Users,
+  GearSix,
   type Icon,
 } from "@phosphor-icons/react";
 
@@ -43,6 +44,7 @@ export const navGroups: NavGroup[] = [
     items: [
       { href: "/laporan", label: "Ekspor & LIR", icon: FileText },
       { href: "/akun", label: "Akun Staf", icon: Users },
+      { href: "/pengaturan", label: "Pengaturan Sekolah", icon: GearSix },
     ],
   },
 ];
