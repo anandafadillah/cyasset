@@ -20,10 +20,9 @@ const jenisOptions = [
 
 const sumberDanaOptions = [
   { value: "", label: "Sumber Dana: Semua" },
+  { value: "bosp", label: "BOSP" },
   { value: "ssg", label: "SSG" },
-  { value: "bos", label: "BOS" },
-  { value: "komite_sekolah", label: "Komite Sekolah" },
-  { value: "mandiri_yayasan", label: "Mandiri Yayasan" },
+  { value: "hibah", label: "Hibah" },
   { value: "lainnya", label: "Lainnya" },
 ];
 

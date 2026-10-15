@@ -27,7 +27,7 @@ const barangBaseFieldsSchema = z
     spesifikasi: z.string().trim().optional(),
     modePelacakan: z.enum(["batch", "unit"]).default("batch"),
     tanggalMasuk: z.string().min(1, "Tanggal masuk wajib diisi"),
-    sumberDana: z.enum(["ssg", "bos", "komite_sekolah", "mandiri_yayasan", "lainnya"], "Sumber dana wajib dipilih"),
+    sumberDana: z.enum(["bosp", "ssg", "hibah", "lainnya"], "Sumber dana wajib dipilih"),
     sumberDanaLainnya: z.string().trim().optional(),
     periodeDana: z.string().trim().optional(),
     nominalDana: z.coerce.number().int().min(0).optional(),
