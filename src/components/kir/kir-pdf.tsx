@@ -1,4 +1,4 @@
-import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
 import type { KirData } from "@/lib/kir-data";
 import type { PengaturanSekolah } from "@/lib/pengaturan-sekolah";
 import { formatTanggalDokumen } from "@/lib/kir";
@@ -9,7 +9,12 @@ const BORDER = "#555";
 const styles = StyleSheet.create({
   page: { fontFamily: "Times-Roman", fontSize: 9.5, color: "#1a1a1a", paddingVertical: 32, paddingHorizontal: 34 },
   judul: { fontSize: 14, fontFamily: "Times-Bold", textAlign: "center", marginBottom: 12 },
+  // Ruang kosong di kanan untuk QR supaya nilai kop yang panjang tidak tertimpa.
+  meta: { marginRight: 96 },
   metaRow: { flexDirection: "row", fontSize: 10, lineHeight: 1.45 },
+  qrWrap: { position: "absolute", top: 30, right: 34, width: 72, alignItems: "center" },
+  qrImage: { width: 72, height: 72 },
+  qrCaption: { fontSize: 7, textAlign: "center", marginTop: 2, color: "#444" },
   metaLabel: { width: 100 },
   metaSep: { width: 10 },
   metaValue: { flex: 1 },
@@ -121,10 +126,12 @@ function angka(value: number) {
 
 function HalamanKir({
   data,
+  qrDataUrl,
   sekolah,
   tanggalDokumen,
 }: {
   data: KirData;
+  qrDataUrl: string;
   sekolah: PengaturanSekolah;
   tanggalDokumen: string;
 }) {
@@ -133,14 +140,23 @@ function HalamanKir({
 
   return (
     <Page size="A4" orientation="landscape" style={styles.page}>
+      {/* Tidak fixed → hanya di halaman pertama ruang ini; mengarah ke /s/ruang/[id]. */}
+      <View style={styles.qrWrap}>
+        {/* eslint-disable-next-line jsx-a11y/alt-text -- Image react-pdf tidak punya prop alt */}
+        <Image src={qrDataUrl} style={styles.qrImage} />
+        <Text style={styles.qrCaption}>Scan untuk data terkini</Text>
+      </View>
+
       <Text style={styles.judul}>KARTU INVENTARIS RUANGAN (KIR)</Text>
 
-      <Meta label="Provinsi" value={sekolah.provinsi ?? "-"} />
-      <Meta label="Kabupaten/Kota" value={sekolah.kabupatenKota ?? "-"} />
-      <Meta label="Unit" value={sekolah.unit ?? "-"} />
-      <Meta label="Satuan Kerja" value={sekolah.namaSekolah} />
-      {ruang.kode && <Meta label="Kode Ruangan" value={ruang.kode} />}
-      <Meta label="Ruangan" value={`${ruang.nama} (${ruang.gedungNama} · ${ruang.lantaiNama})`} />
+      <View style={styles.meta}>
+        <Meta label="Provinsi" value={sekolah.provinsi ?? "-"} />
+        <Meta label="Kabupaten/Kota" value={sekolah.kabupatenKota ?? "-"} />
+        <Meta label="Unit" value={sekolah.unit ?? "-"} />
+        <Meta label="Satuan Kerja" value={sekolah.namaSekolah} />
+        {ruang.kode && <Meta label="Kode Ruangan" value={ruang.kode} />}
+        <Meta label="Ruangan" value={`${ruang.nama} (${ruang.gedungNama} · ${ruang.lantaiNama})`} />
+      </View>
 
       <View style={styles.table}>
         <HeaderTabel />
@@ -199,14 +215,21 @@ export function KirPdf({
   sekolah,
   tanggalDokumen,
 }: {
-  halaman: KirData[];
+  /** qrDataUrl: PNG QR yang meng-encode URL publik /s/ruang/[id]. */
+  halaman: (KirData & { qrDataUrl: string })[];
   sekolah: PengaturanSekolah;
   tanggalDokumen: string;
 }) {
   return (
     <Document title="Kartu Inventaris Ruangan">
       {halaman.map((data) => (
-        <HalamanKir key={data.ruang.id} data={data} sekolah={sekolah} tanggalDokumen={tanggalDokumen} />
+        <HalamanKir
+          key={data.ruang.id}
+          data={data}
+          qrDataUrl={data.qrDataUrl}
+          sekolah={sekolah}
+          tanggalDokumen={tanggalDokumen}
+        />
       ))}
     </Document>
   );
