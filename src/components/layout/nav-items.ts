@@ -2,6 +2,7 @@ import {
   SquaresFour,
   Package,
   MapPin,
+  ClipboardText,
   HardHat,
   HandArrowDown,
   Wrench,
@@ -29,6 +30,7 @@ export const navGroups: NavGroup[] = [
     items: [
       { href: "/barang", label: "Barang", icon: Package },
       { href: "/lokasi", label: "Lokasi", icon: MapPin },
+      { href: "/kir", label: "Kartu Inventaris Ruangan", icon: ClipboardText },
       { href: "/prasarana", label: "Prasarana", icon: HardHat },
     ],
   },

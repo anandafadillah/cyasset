@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import {
   Buildings,
   CaretDown,
@@ -286,14 +287,12 @@ export function LocationExplorer({
                 >
                   <PencilSimple size={14} /> Edit
                 </button>
-                <a
-                  href={`/api/kir/${selectedView.ruang.id}`}
-                  target="_blank"
-                  rel="noreferrer"
+                <Link
+                  href={`/kir/${selectedView.ruang.id}`}
                   className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-xs font-medium text-muted hover:text-text"
                 >
-                  <FileText size={14} /> Cetak KIR
-                </a>
+                  <FileText size={14} /> Lihat KIR
+                </Link>
               </div>
             </>
           ) : (
