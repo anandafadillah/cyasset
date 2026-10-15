@@ -120,13 +120,9 @@ export const barangUnitKondisiEnum = pgEnum("barang_unit_kondisi", [
   "hilang",
   "diganti",
 ]);
-export const barangSumberDanaEnum = pgEnum("barang_sumber_dana", [
-  "ssg",
-  "bos",
-  "komite_sekolah",
-  "mandiri_yayasan",
-  "lainnya",
-]);
+// Jenis anggaran. Nilai lama `bos` → `bosp`, `komite_sekolah`/`mandiri_yayasan`
+// → `lainnya` (label lamanya dipindah ke sumber_dana_lainnya) — lihat migrasi 0014.
+export const barangSumberDanaEnum = pgEnum("barang_sumber_dana", ["bosp", "ssg", "hibah", "lainnya"]);
 
 export const barang = pgTable("barang", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -411,13 +407,7 @@ export const prasaranaJenisEnum = pgEnum("prasarana_jenis", [
   "pemeliharaan",
 ]);
 export const prasaranaStatusEnum = pgEnum("prasarana_status", ["direncanakan", "proses", "selesai"]);
-export const prasaranaSumberDanaEnum = pgEnum("prasarana_sumber_dana", [
-  "ssg",
-  "bos",
-  "komite_sekolah",
-  "mandiri_yayasan",
-  "lainnya",
-]);
+export const prasaranaSumberDanaEnum = pgEnum("prasarana_sumber_dana", ["bosp", "ssg", "hibah", "lainnya"]);
 
 export const prasarana = pgTable("prasarana", {
   id: uuid("id").primaryKey().defaultRandom(),

@@ -35,10 +35,9 @@ const statusOptions = [
 ];
 
 const sumberDanaOptions = [
+  { value: "bosp", label: "BOSP" },
   { value: "ssg", label: "SSG (Sekolah Swasta Gratis)" },
-  { value: "bos", label: "BOS" },
-  { value: "komite_sekolah", label: "Komite Sekolah" },
-  { value: "mandiri_yayasan", label: "Mandiri Yayasan" },
+  { value: "hibah", label: "Hibah" },
   { value: "lainnya", label: "Lainnya" },
 ];
 

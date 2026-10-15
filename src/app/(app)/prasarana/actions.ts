@@ -18,7 +18,7 @@ const prasaranaFieldsSchema = z
     status: z.enum(["direncanakan", "proses", "selesai"]),
     tanggalMulai: z.string().min(1, "Tanggal mulai wajib diisi"),
     tanggalSelesai: z.string().optional(),
-    sumberDana: z.enum(["ssg", "bos", "komite_sekolah", "mandiri_yayasan", "lainnya"], "Sumber dana wajib dipilih"),
+    sumberDana: z.enum(["bosp", "ssg", "hibah", "lainnya"], "Sumber dana wajib dipilih"),
     sumberDanaLainnya: z.string().trim().optional(),
     periodeDana: z.string().trim().optional(),
     nominalDana: z.coerce.number().int().min(0).optional(),

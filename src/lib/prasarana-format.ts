@@ -10,11 +10,12 @@ export const statusLabel: Record<string, string> = {
   selesai: "Selesai",
 };
 
+// Jenis anggaran barang & prasarana — nilai sama dengan enum
+// barang_sumber_dana / prasarana_sumber_dana di schema.ts.
 export const sumberDanaLabel: Record<string, string> = {
+  bosp: "BOSP",
   ssg: "SSG",
-  bos: "BOS",
-  komite_sekolah: "Komite Sekolah",
-  mandiri_yayasan: "Mandiri Yayasan",
+  hibah: "Hibah",
   lainnya: "Lainnya",
 };
 
