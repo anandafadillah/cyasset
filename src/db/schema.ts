@@ -63,6 +63,12 @@ export const ruang = pgTable("ruang", {
     .notNull()
     .references(() => lantai.id, { onDelete: "cascade" }),
   nama: text("nama").notNull(),
+  // Kode ruang diisi manual (format bebas, mis. "R-TKJ-01" atau kode lokasi
+  // dinas) — opsional, tapi unik bila diisi (NULL boleh berulang). Kode &
+  // penanggung jawab dipakai di kop/tanda tangan Kartu Inventaris Ruangan.
+  kode: text("kode").unique(),
+  penanggungJawabNama: text("penanggung_jawab_nama"),
+  penanggungJawabNip: text("penanggung_jawab_nip"),
   ...auditColumns,
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
