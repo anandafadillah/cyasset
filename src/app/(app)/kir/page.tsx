@@ -1,4 +1,5 @@
 import { Topbar } from "@/components/layout/topbar";
+import { CetakSemuaKirForm } from "@/components/kir/cetak-semua-kir-form";
 import { KirRuangList, type KirRuangRingkas } from "@/components/kir/kir-ruang-list";
 import { getKirBanyakRuang } from "@/lib/kir-data";
 
@@ -21,11 +22,13 @@ export default async function KirPage() {
     rusakBerat: items.reduce((sum, item) => sum + item.rusakBerat, 0),
   }));
   const totalUnit = ruangList.reduce((sum, r) => sum + r.totalUnit, 0);
+  const gedungOptions = [...new Map(ruangList.map((r) => [r.gedungId, { id: r.gedungId, nama: r.gedungNama }])).values()];
 
   return (
     <>
       <Topbar title="Kartu Inventaris Ruangan" breadcrumb={`${ruangList.length} ruang · ${totalUnit} unit`} />
       <div className="flex flex-1 flex-col gap-4 p-4 sm:p-6">
+        {ruangList.length > 0 && <CetakSemuaKirForm gedungOptions={gedungOptions} />}
         <KirRuangList ruangList={ruangList} />
       </div>
     </>
