@@ -9,8 +9,6 @@ export type LaporanTabelData = {
   pesanKosong: string;
 };
 
-const SEKOLAH = "SMK CYBER MEDIA";
-
 const styles = StyleSheet.create({
   page: { fontFamily: "Times-Roman", fontSize: 10.5, color: "#1a1a1a", padding: 44 },
   kop: { textAlign: "center", borderBottomWidth: 3, borderBottomColor: "#1a1a1a", paddingBottom: 10, marginBottom: 16 },
@@ -25,12 +23,12 @@ const styles = StyleSheet.create({
   head: { fontSize: 9, fontFamily: "Times-Bold" },
 });
 
-export function LaporanTabelPdf({ data }: { data: LaporanTabelData }) {
+export function LaporanTabelPdf({ data, namaSekolah }: { data: LaporanTabelData; namaSekolah: string }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.kop}>
-          <Text style={styles.sekolah}>{SEKOLAH}</Text>
+          <Text style={styles.sekolah}>{namaSekolah}</Text>
           <Text>Bagian Sarana &amp; Prasarana</Text>
         </View>
         <Text style={styles.judul}>{data.judul}</Text>

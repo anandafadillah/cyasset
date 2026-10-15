@@ -1,4 +1,5 @@
 import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer";
+import type { PengaturanSekolah } from "@/lib/pengaturan-sekolah";
 
 export type SuratPeminjamanData = {
   nomorSurat: string;
@@ -14,11 +15,8 @@ export type SuratPeminjamanData = {
 };
 
 const YAYASAN = "YAYASAN PENDIDIKAN CYBER MEDIA";
-const SEKOLAH = "SMK CYBER MEDIA";
 const ALAMAT = "Jl. Teknologi Informasi No. 45, Jakarta Selatan 12440";
 const KONTAK = "Telp. (021) 7890-1234 · www.smkcybermedia.sch.id";
-const KOTA = "Jakarta";
-const KEPALA_SEKOLAH = "Drs. H. Bambang Wijaya, M.Pd.";
 
 const styles = StyleSheet.create({
   page: { fontFamily: "Times-Roman", fontSize: 11, color: "#1a1a1a", padding: 48 },
@@ -76,7 +74,7 @@ function formatTanggalIndonesia(value: string) {
   });
 }
 
-export function SuratPeminjamanPdf({ data }: { data: SuratPeminjamanData }) {
+export function SuratPeminjamanPdf({ data, sekolah }: { data: SuratPeminjamanData; sekolah: PengaturanSekolah }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -84,7 +82,7 @@ export function SuratPeminjamanPdf({ data }: { data: SuratPeminjamanData }) {
           <View style={styles.logo} />
           <View style={styles.kopText}>
             <Text style={styles.yayasan}>{YAYASAN}</Text>
-            <Text style={styles.sekolah}>{SEKOLAH}</Text>
+            <Text style={styles.sekolah}>{sekolah.namaSekolah}</Text>
             <Text style={styles.alamat}>{ALAMAT}</Text>
             <Text style={styles.alamat}>{KONTAK}</Text>
           </View>
@@ -96,7 +94,7 @@ export function SuratPeminjamanPdf({ data }: { data: SuratPeminjamanData }) {
         </View>
 
         <Text style={styles.paragraf}>
-          Yang bertanda tangan di bawah ini, selaku Petugas Sarana dan Prasarana {SEKOLAH}, menerangkan bahwa
+          Yang bertanda tangan di bawah ini, selaku Petugas Sarana dan Prasarana {sekolah.namaSekolah}, menerangkan bahwa
           telah meminjamkan barang inventaris sekolah kepada:
         </Text>
 
@@ -162,7 +160,8 @@ export function SuratPeminjamanPdf({ data }: { data: SuratPeminjamanData }) {
           </View>
           <View style={styles.ttdCol}>
             <Text>
-              {KOTA}, {formatTanggalIndonesia(data.tanggalTerbit)}
+              {sekolah.kotaTandaTangan ? `${sekolah.kotaTandaTangan}, ` : ""}
+              {formatTanggalIndonesia(data.tanggalTerbit)}
             </Text>
             <Text>Petugas Sarpras,</Text>
             <View style={styles.ttdSpace} />
@@ -172,9 +171,10 @@ export function SuratPeminjamanPdf({ data }: { data: SuratPeminjamanData }) {
 
         <View style={styles.mengetahui}>
           <Text>Mengetahui,</Text>
-          <Text>Kepala {SEKOLAH}</Text>
+          <Text>Kepala {sekolah.namaSekolah}</Text>
           <View style={{ height: 50 }} />
-          <Text style={styles.ttdName}>{KEPALA_SEKOLAH}</Text>
+          <Text style={styles.ttdName}>{sekolah.kepalaSekolahNama ?? "( .................................... )"}</Text>
+          {sekolah.kepalaSekolahNip && <Text>NIP. {sekolah.kepalaSekolahNip}</Text>}
         </View>
       </Page>
     </Document>
