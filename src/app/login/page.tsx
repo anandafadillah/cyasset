@@ -17,7 +17,7 @@ const highlights = [
   },
   {
     icon: FileText,
-    text: "LIR & rekap siap cetak untuk pimpinan",
+    text: "KIR & rekap siap cetak untuk pimpinan",
   },
 ];
 

@@ -42,7 +42,7 @@ export const navGroups: NavGroup[] = [
   {
     section: "Laporan",
     items: [
-      { href: "/laporan", label: "Ekspor & LIR", icon: FileText },
+      { href: "/laporan", label: "Ekspor & Laporan", icon: FileText },
       { href: "/akun", label: "Akun Staf", icon: Users },
       { href: "/pengaturan", label: "Pengaturan Sekolah", icon: GearSix },
     ],

@@ -286,14 +286,14 @@ export function LocationExplorer({
                 >
                   <PencilSimple size={14} /> Edit
                 </button>
-                <button
-                  type="button"
-                  disabled
-                  title="Menyusul di modul Ekspor & LIR"
-                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-xs font-medium text-faint"
+                <a
+                  href={`/api/kir/${selectedView.ruang.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-xs font-medium text-muted hover:text-text"
                 >
-                  <FileText size={14} /> Cetak LIR
-                </button>
+                  <FileText size={14} /> Cetak KIR
+                </a>
               </div>
             </>
           ) : (

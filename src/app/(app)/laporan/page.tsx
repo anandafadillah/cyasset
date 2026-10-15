@@ -10,6 +10,7 @@ import {
   Wrench,
 } from "@phosphor-icons/react/dist/ssr";
 import { Topbar } from "@/components/layout/topbar";
+import { CetakKirForm } from "@/components/kir/cetak-kir-form";
 import { getLocationTree } from "@/lib/locations";
 import { db } from "@/db";
 import { peminjaman } from "@/db/schema";
@@ -42,35 +43,9 @@ export default async function LaporanPage() {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           <div className="rounded-xl border border-border bg-surface p-5">
             <IconBadge icon={<ClipboardText size={20} />} />
-            <h3 className="mb-1 text-base font-semibold text-text">Laporan Inventaris Ruang</h3>
-            <p className="mb-4 text-xs text-muted">Daftar barang + kondisi per ruang, siap tanda tangan.</p>
-            <form action="/api/laporan/lir" method="get" target="_blank" className="flex flex-col gap-3">
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="ruangId" className="text-xs font-medium text-muted">
-                  Ruang
-                </label>
-                <select
-                  id="ruangId"
-                  name="ruangId"
-                  required
-                  className="rounded-lg border border-border bg-surface-2 px-3 py-2.5 text-sm text-text outline-none focus:border-accent"
-                >
-                  <option value="">Pilih ruang…</option>
-                  {ruangOptions.map((option) => (
-                    <option key={option.id} value={option.id}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <button
-                type="submit"
-                className="flex items-center justify-center gap-2 rounded-lg bg-accent-strong px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-              >
-                <FilePdf size={16} />
-                Cetak LIR (PDF)
-              </button>
-            </form>
+            <h3 className="mb-1 text-base font-semibold text-text">Kartu Inventaris Ruangan</h3>
+            <p className="mb-4 text-xs text-muted">Daftar barang, anggaran &amp; kondisi per ruang, siap tanda tangan.</p>
+            <CetakKirForm ruangOptions={ruangOptions} />
           </div>
 
           <div className="rounded-xl border border-border bg-surface p-5">
