@@ -10,6 +10,11 @@ export type LocationDialogTarget = {
   id?: string;
   parentId?: string;
   initialNama?: string;
+  initialRuang?: {
+    kode: string | null;
+    penanggungJawabNama: string | null;
+    penanggungJawabNip: string | null;
+  };
 };
 
 const levelLabel: Record<LocationLevel, string> = {
@@ -74,6 +79,32 @@ export function LocationFormDialog({
             />
           </div>
 
+          {target.level === "ruang" && (
+            <>
+              <TextField
+                label="Kode Ruang"
+                name="kode"
+                hint="(opsional, unik)"
+                placeholder="mis. R-TKJ-01"
+                defaultValue={target.initialRuang?.kode}
+              />
+              <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+                <TextField
+                  label="Penanggung Jawab Ruangan"
+                  name="penanggungJawabNama"
+                  hint="(opsional)"
+                  defaultValue={target.initialRuang?.penanggungJawabNama}
+                />
+                <TextField
+                  label="NIP Penanggung Jawab"
+                  name="penanggungJawabNip"
+                  hint="(opsional)"
+                  defaultValue={target.initialRuang?.penanggungJawabNip}
+                />
+              </div>
+            </>
+          )}
+
           <div aria-live="polite" className="min-h-5 text-sm text-danger">
             {error}
           </div>
@@ -97,5 +128,35 @@ export function LocationFormDialog({
         </form>
       )}
     </Modal>
+  );
+}
+
+function TextField({
+  label,
+  name,
+  hint,
+  placeholder,
+  defaultValue,
+}: {
+  label: string;
+  name: string;
+  hint?: string;
+  placeholder?: string;
+  defaultValue?: string | null;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label htmlFor={name} className="text-xs font-medium text-muted">
+        {label} {hint && <span className="text-dim">{hint}</span>}
+      </label>
+      <input
+        id={name}
+        name={name}
+        type="text"
+        placeholder={placeholder}
+        defaultValue={defaultValue ?? undefined}
+        className="rounded-lg border border-border bg-surface-2 px-3 py-2.5 text-sm text-text outline-none focus:border-accent"
+      />
+    </div>
   );
 }

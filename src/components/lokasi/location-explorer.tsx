@@ -21,6 +21,9 @@ export type SubLokasiNode = { id: string; nama: string };
 export type RuangNode = {
   id: string;
   nama: string;
+  kode: string | null;
+  penanggungJawabNama: string | null;
+  penanggungJawabNip: string | null;
   subLokasi: SubLokasiNode[];
   totalUnit: number;
   jenisBarang: number;
@@ -41,6 +44,14 @@ export function LocationExplorer({
   );
   const [dialogTarget, setDialogTarget] = useState<LocationDialogTarget | null>(null);
   const [, startTransition] = useTransition();
+
+  // Ambil ulang dari gedungList terbaru (bukan snapshot saat diklik) supaya
+  // panel detail ikut berubah setelah ruangnya diedit.
+  const selectedView = selected
+    ? gedungList
+        .flatMap((g) => g.lantai.flatMap((l) => l.ruang.map((ruang) => ({ ruang, gedungNama: g.nama, lantaiNama: l.nama }))))
+        .find((item) => item.ruang.id === selected.ruang.id) ?? null
+    : null;
 
   function toggle(id: string) {
     setExpanded((prev) => {
@@ -171,6 +182,7 @@ export function LocationExplorer({
                                         />
                                         <span className={`text-[13px] ${isSelected ? "text-accent" : "text-text"}`}>
                                           {r.nama}
+                                          {r.kode && <span className="ml-1.5 text-[11px] text-dim">{r.kode}</span>}
                                         </span>
                                       </button>
                                       <span className="rounded-full bg-surface-3 px-2 py-0.5 text-[11px] text-dim">
@@ -181,12 +193,7 @@ export function LocationExplorer({
                                           setDialogTarget({ level: "sub-lokasi", mode: "create", parentId: r.id })
                                         }
                                         onEdit={() =>
-                                          setDialogTarget({
-                                            level: "ruang",
-                                            mode: "edit",
-                                            id: r.id,
-                                            initialNama: r.nama,
-                                          })
+                                          setDialogTarget(ruangEditTarget(r))
                                         }
                                         onDelete={() => handleDelete("ruang", r.id, r.nama)}
                                         addLabel="Tambah Sub-lokasi"
@@ -229,29 +236,42 @@ export function LocationExplorer({
         </div>
 
         <div className="rounded-xl border border-border bg-surface p-5">
-          {selected ? (
+          {selectedView ? (
             <>
               <div className="mb-1.5 text-[11px] font-semibold tracking-[0.1em] text-accent uppercase">
                 Ruang terpilih
               </div>
-              <h3 className="text-[17px] font-semibold text-text">{selected.ruang.nama}</h3>
+              <h3 className="text-[17px] font-semibold text-text">{selectedView.ruang.nama}</h3>
               <div className="mb-4 text-xs text-dim">
-                {selected.gedungNama} · {selected.lantaiNama}
+                {selectedView.gedungNama} · {selectedView.lantaiNama}
               </div>
               <div className="flex flex-col gap-3 text-sm">
                 <div className="flex">
+                  <span className="text-muted">Kode ruang</span>
+                  <span className="ml-auto text-text">{selectedView.ruang.kode ?? "—"}</span>
+                </div>
+                <div className="flex gap-3">
+                  <span className="text-muted">Penanggung jawab</span>
+                  <span className="ml-auto text-right text-text">
+                    {selectedView.ruang.penanggungJawabNama ?? "—"}
+                    {selectedView.ruang.penanggungJawabNip && (
+                      <span className="block text-[11px] text-dim">NIP. {selectedView.ruang.penanggungJawabNip}</span>
+                    )}
+                  </span>
+                </div>
+                <div className="flex">
                   <span className="text-muted">Total unit</span>
-                  <span className="ml-auto font-semibold text-text">{selected.ruang.totalUnit}</span>
+                  <span className="ml-auto font-semibold text-text">{selectedView.ruang.totalUnit}</span>
                 </div>
                 <div className="flex">
                   <span className="text-muted">Jenis barang</span>
-                  <span className="ml-auto text-text">{selected.ruang.jenisBarang}</span>
+                  <span className="ml-auto text-text">{selectedView.ruang.jenisBarang}</span>
                 </div>
                 <div className="flex">
                   <span className="text-muted">Sub-lokasi</span>
                   <span className="ml-auto text-right text-text">
-                    {selected.ruang.subLokasi.length > 0
-                      ? `${selected.ruang.subLokasi.length} (${selected.ruang.subLokasi.map((s) => s.nama).join(", ")})`
+                    {selectedView.ruang.subLokasi.length > 0
+                      ? `${selectedView.ruang.subLokasi.length} (${selectedView.ruang.subLokasi.map((s) => s.nama).join(", ")})`
                       : "Tidak ada"}
                   </span>
                 </div>
@@ -260,12 +280,7 @@ export function LocationExplorer({
                 <button
                   type="button"
                   onClick={() =>
-                    setDialogTarget({
-                      level: "ruang",
-                      mode: "edit",
-                      id: selected.ruang.id,
-                      initialNama: selected.ruang.nama,
-                    })
+                    setDialogTarget(ruangEditTarget(selectedView.ruang))
                   }
                   className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-xs font-medium text-muted hover:text-text"
                 >
@@ -290,6 +305,16 @@ export function LocationExplorer({
       <LocationFormDialog target={dialogTarget} onClose={() => setDialogTarget(null)} />
     </>
   );
+}
+
+function ruangEditTarget(r: RuangNode): LocationDialogTarget {
+  return {
+    level: "ruang",
+    mode: "edit",
+    id: r.id,
+    initialNama: r.nama,
+    initialRuang: { kode: r.kode, penanggungJawabNama: r.penanggungJawabNama, penanggungJawabNip: r.penanggungJawabNip },
+  };
 }
 
 function RowActions({
